@@ -1,4 +1,4 @@
-# 有趣软件生活-视觉健康管理系统
+# 有趣生活软件-视觉健康管理系统
 
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![Java](https://img.shields.io/badge/Java-17-brightgreen)](https://openjdk.java.net/)
@@ -29,6 +29,7 @@ VisionFlow 是一套专为眼镜验光配镜行业打造的客户关系管理(CR
 - **对象映射**: MapStruct
 - **工具类库**: Hutool
 - **代码生成**: MyBatis-Plus Generator + Velocity
+- **数据库迁移工具**: Flyway
 
 ## 系统特性
 
@@ -94,6 +95,12 @@ src
 │   └── resources             # 资源文件
 └── test                      # 测试模块
 ```
+
+## 开发注意事项
+### 数据库脚本迁移
+- 数据库脚本迁移框架：Flyway
+- 脚本存放位置：src/main/resources/db/migration
+- 脚本命名规则：V{version}_{description}.sql (V必须为大写)
 
 ## 贡献指南
 

@@ -1,4 +1,4 @@
-package com.youqusoft.vision.flow.modules.member.controller;
+package com.youqusoft.vision.flow.modules.customer.controller;
 
 /**
  * 会员控制层-业务模块演示

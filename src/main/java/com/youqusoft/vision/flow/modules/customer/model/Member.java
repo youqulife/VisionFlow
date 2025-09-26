@@ -1,4 +1,4 @@
-package com.youqusoft.vision.flow.modules.member.model;
+package com.youqusoft.vision.flow.modules.customer.model;
 
 /**
  * 会员实体-业务模块演示

@@ -1,4 +1,4 @@
-package com.youqusoft.vision.flow.modules.member.mapper;
+package com.youqusoft.vision.flow.modules.customer.mapper;
 
 /**
  * 会员数据访问层-业务模块演示

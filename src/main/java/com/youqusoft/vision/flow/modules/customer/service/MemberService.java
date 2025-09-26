@@ -1,4 +1,4 @@
-package com.youqusoft.vision.flow.modules.member.service;
+package com.youqusoft.vision.flow.modules.customer.service;
 
 /**
  * 会员管理服务类-业务模块演示
