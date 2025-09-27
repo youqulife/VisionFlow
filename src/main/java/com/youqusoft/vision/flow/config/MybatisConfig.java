@@ -5,16 +5,16 @@ import com.baomidou.mybatisplus.core.config.GlobalConfig;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
-import com.youqusoft.vision.flow.core.handler.MyDataPermissionHandler;
-import com.youqusoft.vision.flow.core.handler.MyMetaObjectHandler;
+import com.youqusoft.vision.flow.pulgin.mybatis.MyDataPermissionHandler;
+import com.youqusoft.vision.flow.pulgin.mybatis.MyMetaObjectHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * mybatis-plus 自动配置类
+ * mybatis-plus 配置类
  *
- * @author haoxr
+ * @author Ray.Hao
  * @since 2022/7/2
  */
 @Configuration
