@@ -5,7 +5,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.youqusoft.vision.flow.VisionFlowBootApplication;
+import com.youqusoft.vision.flow.VisionFlowApplication;
 import com.youqusoft.vision.flow.common.enums.EnvEnum;
 import com.youqusoft.vision.flow.shared.codegen.enums.FormTypeEnum;
 import com.youqusoft.vision.flow.shared.codegen.enums.JavaTypeEnum;
@@ -78,15 +78,20 @@ public class GenConfigServiceImpl extends ServiceImpl<GenConfigMapper, GenConfig
             genConfig = new GenConfig();
             genConfig.setTableName(tableName);
 
+            // 表注释作为业务名称，去掉表字 例如：用户表 -> 用户
             String tableComment = tableMetadata.getTableComment();
             if (StrUtil.isNotBlank(tableComment)) {
                 genConfig.setBusinessName(tableComment.replace("表", "").trim());
             }
-            // 实体类名 = 表名去掉前缀后转驼峰，前缀默认为下划线分割的第一个元素
-            String entityName = StrUtil.toCamelCase(StrUtil.removePrefix(tableName, tableName.split("_")[0]));
-            genConfig.setEntityName(entityName);
+            //  根据表名生成实体类名，支持去除前缀 例如：sys_user -> SysUser
+            String removePrefix = genConfig.getRemoveTablePrefix();
+            String processedTable = tableName;
+            if (StrUtil.isNotBlank(removePrefix) && StrUtil.startWith(tableName, removePrefix)) {
+                processedTable = StrUtil.removePrefix(tableName, removePrefix);
+            }
+            genConfig.setEntityName(StrUtil.toCamelCase(StrUtil.upperFirst(StrUtil.toCamelCase(processedTable))));
 
-            genConfig.setPackageName(VisionFlowBootApplication.class.getPackageName());
+            genConfig.setPackageName(VisionFlowApplication.class.getPackageName());
             genConfig.setModuleName(codegenProperties.getDefaultConfig().getModuleName()); // 默认模块名
             genConfig.setAuthor(codegenProperties.getDefaultConfig().getAuthor());
         }
@@ -154,7 +159,7 @@ public class GenConfigServiceImpl extends ServiceImpl<GenConfigMapper, GenConfig
         fieldConfig.setColumnType(columnMetaData.getDataType());
         fieldConfig.setFieldComment(columnMetaData.getColumnComment());
         fieldConfig.setFieldName(StrUtil.toCamelCase(columnMetaData.getColumnName()));
-        fieldConfig.setIsRequired("YES".equals(columnMetaData.getIsNullable()) ? 1 : 0);
+        fieldConfig.setIsRequired("YES".equals(columnMetaData.getIsNullable()) ? 0 : 1);
 
         if (fieldConfig.getColumnType().equals("date")) {
             fieldConfig.setFormType(FormTypeEnum.DATE);
