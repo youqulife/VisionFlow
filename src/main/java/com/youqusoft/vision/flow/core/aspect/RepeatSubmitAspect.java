@@ -1,13 +1,13 @@
 package com.youqusoft.vision.flow.core.aspect;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.jwt.JWTUtil;
-import cn.hutool.jwt.RegisteredPayload;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.common.constant.SecurityConstants;
 import com.youqusoft.vision.flow.common.result.ResultCode;
 import com.youqusoft.vision.flow.common.exception.BusinessException;
 import com.youqusoft.vision.flow.common.annotation.RepeatSubmit;
+import com.youqusoft.vision.flow.common.util.IPUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,15 +25,15 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 处理重复提交的切面
+ * 防重复提交切面
  *
- * @author haoxr
+ * @author Ray.Hao
  * @since 2.3.0
  */
 @Aspect
 @Component
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class RepeatSubmitAspect {
 
     private final RedissonClient redissonClient;
@@ -42,41 +42,61 @@ public class RepeatSubmitAspect {
      * 防重复提交切点
      */
     @Pointcut("@annotation(repeatSubmit)")
-    public void preventDuplicateSubmitPointCut(RepeatSubmit repeatSubmit) {
-        log.info("定义防重复提交切点");
+    public void repeatSubmitPointCut(RepeatSubmit repeatSubmit) {
     }
 
-    @Around("preventDuplicateSubmitPointCut(repeatSubmit)")
-    public Object doAround(ProceedingJoinPoint pjp, RepeatSubmit repeatSubmit) throws Throwable {
+    /**
+     * 环绕通知：处理防重复提交逻辑
+     */
+    @Around(value = "repeatSubmitPointCut(repeatSubmit)", argNames = "pjp,repeatSubmit")
+    public Object handleRepeatSubmit(ProceedingJoinPoint pjp, RepeatSubmit repeatSubmit) throws Throwable {
+        String lockKey = buildLockKey();
 
-        String resubmitLockKey = generateResubmitLockKey();
-        if (resubmitLockKey != null) {
-            int expire = repeatSubmit.expire(); // 防重提交锁过期时间
-            RLock lock = redissonClient.getLock(resubmitLockKey);
-            boolean lockResult = lock.tryLock(0, expire, TimeUnit.SECONDS); // 获取锁失败，直接返回 false
-            if (!lockResult) {
-                throw new BusinessException(ResultCode.REPEAT_SUBMIT_ERROR); // 抛出重复提交提示信息
-            }
+        int expire = repeatSubmit.expire();
+        RLock lock = redissonClient.getLock(lockKey);
+
+        boolean locked = lock.tryLock(0, expire, TimeUnit.SECONDS);
+        if (!locked) {
+            throw new BusinessException(ResultCode.USER_DUPLICATE_REQUEST);
         }
         return pjp.proceed();
     }
 
-
     /**
-     * 获取重复提交锁的 key
+     * 生成防重复提交锁的 key
+     * @return 锁的 key
      */
-    private String generateResubmitLockKey() {
-        String resubmitLockKey = null;
+    private String buildLockKey() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-
-        String token = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StrUtil.isNotBlank(token) && token.startsWith(SecurityConstants.JWT_TOKEN_PREFIX)) {
-            token = token.substring(SecurityConstants.JWT_TOKEN_PREFIX.length());
-            // 从 JWT Token 中获取 jti
-            String jti = (String) JWTUtil.parseToken(token).getPayload(RegisteredPayload.JWT_ID);
-            resubmitLockKey = RedisConstants.RESUBMIT_LOCK_PREFIX + jti + ":" + request.getMethod() + "-" + request.getRequestURI();
-        }
-        return resubmitLockKey;
+        // 用户唯一标识
+        String userIdentifier = getUserIdentifier(request);
+        // 请求唯一标识 = 请求方法 + 请求路径 + 请求参数(严谨的做法)
+        String requestIdentifier = StrUtil.join(":", request.getMethod(), request.getRequestURI());
+        return StrUtil.format(RedisConstants.Lock.RESUBMIT, userIdentifier, requestIdentifier);
     }
 
+    /**
+     *  获取用户唯一标识
+     *  1. 从请求头中获取 Token，使用 SHA-256 加密 Token 作为用户唯一标识
+     *  2. 如果 Token 为空，使用 IP 作为用户唯一标识
+     *
+     * @param request 请求对象
+     * @return 用户唯一标识
+     */
+    private String getUserIdentifier(HttpServletRequest request) {
+        // 用户身份唯一标识
+        String userIdentifier;
+        // 从请求头中获取 Token
+        String tokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StrUtil.isNotBlank(tokenHeader) && tokenHeader.startsWith(SecurityConstants.BEARER_TOKEN_PREFIX)) {
+            String rawToken = tokenHeader.substring(SecurityConstants.BEARER_TOKEN_PREFIX.length());  // 去掉 Bearer 后的 Token
+            userIdentifier = DigestUtil.sha256Hex(rawToken); // 使用 SHA-256 加密 Token 作为用户唯一标识
+        } else {
+            userIdentifier = IPUtils.getIpAddr(request); // 使用 IP 作为用户唯一标识
+        }
+        return userIdentifier;
+    }
+
+
 }
+

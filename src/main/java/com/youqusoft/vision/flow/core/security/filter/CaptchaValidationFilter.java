@@ -2,6 +2,7 @@ package com.youqusoft.vision.flow.core.security.filter;
 
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
+import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.common.constant.SecurityConstants;
 import com.youqusoft.vision.flow.common.result.ResultCode;
 import com.youqusoft.vision.flow.common.util.ResponseUtils;
@@ -53,15 +54,17 @@ public class CaptchaValidationFilter extends OncePerRequestFilter {
             }
             // 缓存中的验证码
             String verifyCodeKey = request.getParameter(CAPTCHA_KEY_PARAM_NAME);
-            String cacheVerifyCode = (String) redisTemplate.opsForValue().get(SecurityConstants.CAPTCHA_CODE_PREFIX + verifyCodeKey);
+            String cacheVerifyCode = (String) redisTemplate.opsForValue().get(
+                    StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, verifyCodeKey)
+            );
             if (cacheVerifyCode == null) {
-                ResponseUtils.writeErrMsg(response, ResultCode.VERIFY_CODE_TIMEOUT);
+                ResponseUtils.writeErrMsg(response, ResultCode.USER_VERIFICATION_CODE_EXPIRED);
             } else {
                 // 验证码比对
                 if (codeGenerator.verify(cacheVerifyCode, captchaCode)) {
                     chain.doFilter(request, response);
                 } else {
-                    ResponseUtils.writeErrMsg(response, ResultCode.VERIFY_CODE_ERROR);
+                    ResponseUtils.writeErrMsg(response, ResultCode.USER_VERIFICATION_CODE_ERROR);
                 }
             }
         } else {

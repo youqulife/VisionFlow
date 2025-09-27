@@ -3,12 +3,12 @@ package com.youqusoft.vision.flow.core.aspect;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
 import cn.hutool.json.JSONUtil;
 import com.aliyun.oss.HttpMethod;
 import com.youqusoft.vision.flow.common.enums.LogModuleEnum;
-import com.youqusoft.vision.flow.common.util.AnonymousUtils;
 import com.youqusoft.vision.flow.common.util.IPUtils;
 import com.youqusoft.vision.flow.core.security.util.SecurityUtils;
 import com.youqusoft.vision.flow.system.model.entity.Log;
@@ -18,11 +18,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.context.ApplicationContext;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -31,23 +29,26 @@ import org.springframework.web.servlet.HandlerMapping;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 
 /**
  * 日志切面
  *
- * @author Ray
+ * @author Ray.Hao
  * @since 2024/6/25
  */
+@Slf4j
 @Aspect
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class LogAspect {
     private final LogService logService;
     private final HttpServletRequest request;
-    private final ApplicationContext applicationContext;
+    private final CacheManager cacheManager;
 
+    /**
+     * 切点
+     */
     @Pointcut("@annotation(com.youqusoft.vision.flow.common.annotation.Log)")
     public void logPointcut() {
     }
@@ -57,45 +58,42 @@ public class LogAspect {
      *
      * @param joinPoint 切点
      */
-    @AfterReturning(pointcut = "logPointcut() && @annotation(logAnnotation)", returning = "jsonResult")
-    public void doAfterReturning(JoinPoint joinPoint, com.youqusoft.vision.flow.common.annotation.Log logAnnotation, Object jsonResult) {
-        this.saveLog(joinPoint, null, jsonResult, logAnnotation);
-    }
-
-
-    /**
-     * 拦截异常操作
-     *
-     * @param joinPoint 切点
-     * @param e         异常
-     */
-    @AfterThrowing(value = "logPointcut()", throwing = "e")
-    public void doAfterThrowing(JoinPoint joinPoint, Exception e) {
-        this.saveLog(joinPoint, e, null, null);
-    }
-
-    /**
-     * 保持日志
-     */
-    private void saveLog(final JoinPoint joinPoint, final Exception e, Object jsonResult, com.youqusoft.vision.flow.common.annotation.Log logAnnotation) {
-        String requestURI = request.getRequestURI();
-
-        Long userId = null;
-
-        // 获取所有匿名标记
-        Set<String> anonymousUrls = AnonymousUtils.getAnonymousUrls(applicationContext);
-
-        // 非登录请求获取用户ID，登录请求在登录成功后(joinPoint.proceed())获取用户ID
-        if (!anonymousUrls.contains(requestURI)) {
-            userId = SecurityUtils.getUserId();
-        }
-
+    @Around("logPointcut() && @annotation(logAnnotation)")
+    public Object doAround(ProceedingJoinPoint joinPoint, com.youqusoft.vision.flow.common.annotation.Log logAnnotation) throws Throwable {
+        // 在方法执行前获取用户ID，避免在方法执行过程中清除上下文导致获取不到用户ID
+        Long userId = SecurityUtils.getUserId();
+        
         TimeInterval timer = DateUtil.timer();
-        // 执行方法
-        long executionTime = timer.interval();
+        Object result = null;
+        Exception exception = null;
 
+        try {
+            result = joinPoint.proceed();
+        } catch (Exception e) {
+            exception = e;
+            throw e;
+        } finally {
+            long executionTime = timer.interval(); // 执行时长
+            this.saveLog(joinPoint, exception, result, logAnnotation, executionTime, userId);
+        }
+        return result;
+    }
+
+
+    /**
+     * 保存日志
+     *
+     * @param joinPoint     切点
+     * @param e             异常
+     * @param jsonResult    响应结果
+     * @param logAnnotation 日志注解
+     * @param userId        用户ID
+     */
+    private void saveLog(final JoinPoint joinPoint, final Exception e, Object jsonResult, com.youqusoft.vision.flow.common.annotation.Log logAnnotation, long executionTime, Long userId) {
+        String requestURI = request.getRequestURI();
         // 创建日志记录
         Log log = new Log();
+        log.setExecutionTime(executionTime);
         if (logAnnotation == null && e != null) {
             log.setModule(LogModuleEnum.EXCEPTION);
             log.setContent("系统发生异常");
@@ -113,12 +111,7 @@ public class LogAspect {
                 log.setResponseContent(JSONUtil.toJsonStr(jsonResult));
             }
         }
-
         log.setRequestUri(requestURI);
-        // 登录方法需要在登录成功后获取用户ID
-        if (userId == null) {
-            userId = SecurityUtils.getUserId();
-        }
         log.setCreateBy(userId);
         String ipAddr = IPUtils.getIpAddr(request);
         if (StrUtil.isNotBlank(ipAddr)) {
@@ -134,15 +127,17 @@ public class LogAspect {
             }
         }
 
-        log.setExecutionTime(executionTime);
+
         // 获取浏览器和终端系统信息
         String userAgentString = request.getHeader("User-Agent");
-        UserAgent userAgent = UserAgentUtil.parse(userAgentString);
-        // 系统信息
-        log.setOs(userAgent.getOs().getName());
-        // 浏览器信息
-        log.setBrowser(userAgent.getBrowser().getName());
-        log.setBrowserVersion(userAgent.getBrowser().getVersion(userAgentString));
+        UserAgent userAgent = resolveUserAgent(userAgentString);
+        if (Objects.nonNull(userAgent)) {
+            // 系统信息
+            log.setOs(userAgent.getOs().getName());
+            // 浏览器信息
+            log.setBrowser(userAgent.getBrowser().getName());
+            log.setBrowserVersion(userAgent.getBrowser().getVersion(userAgentString));
+        }
         // 保存日志到数据库
         logService.save(log);
     }
@@ -206,6 +201,29 @@ public class LogAspect {
             return map.values().stream().anyMatch(value -> value instanceof MultipartFile);
         }
         return obj instanceof MultipartFile || obj instanceof HttpServletRequest || obj instanceof HttpServletResponse;
+    }
+
+
+    /**
+     * 解析UserAgent
+     *
+     * @param userAgentString UserAgent字符串
+     * @return UserAgent
+     */
+    public UserAgent resolveUserAgent(String userAgentString) {
+        if (StrUtil.isBlank(userAgentString)) {
+            return null;
+        }
+        // 给userAgentStringMD5加密一次防止过长
+        String userAgentStringMD5 = DigestUtil.md5Hex(userAgentString);
+        //判断是否命中缓存
+        UserAgent userAgent = Objects.requireNonNull(cacheManager.getCache("userAgent")).get(userAgentStringMD5, UserAgent.class);
+        if (userAgent != null) {
+            return userAgent;
+        }
+        userAgent = UserAgentUtil.parse(userAgentString);
+        Objects.requireNonNull(cacheManager.getCache("userAgent")).put(userAgentStringMD5, userAgent);
+        return userAgent;
     }
 
 }

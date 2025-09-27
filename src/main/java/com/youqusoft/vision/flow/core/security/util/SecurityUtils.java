@@ -2,6 +2,7 @@ package com.youqusoft.vision.flow.core.security.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.youqusoft.vision.flow.common.constant.SecurityConstants;
 import com.youqusoft.vision.flow.common.constant.SystemConstants;
 import com.youqusoft.vision.flow.core.security.model.SysUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,10 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -83,21 +81,21 @@ public class SecurityUtils {
 
 
     /**
-     * 获取用户角色集合
+     * 获取角色集合
      *
      * @return 角色集合
      */
     public static Set<String> getRoles() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            if (CollectionUtil.isNotEmpty(authorities)) {
-                return authorities.stream().filter(item -> item.getAuthority().startsWith("ROLE_"))
-                        .map(item -> StrUtil.removePrefix(item.getAuthority(), "ROLE_"))
-                        .collect(Collectors.toSet());
-            }
-        }
-        return Collections.EMPTY_SET;
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Authentication::getAuthorities)
+                .filter(CollectionUtil::isNotEmpty)
+                .stream()
+                .flatMap(Collection::stream)
+                .map(GrantedAuthority::getAuthority)
+                // 筛选角色,authorities 中的角色都是以 ROLE_ 开头
+                .filter(authority -> authority.startsWith(SecurityConstants.ROLE_PREFIX))
+                .map(authority -> StrUtil.removePrefix(authority, SecurityConstants.ROLE_PREFIX))
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -116,7 +114,11 @@ public class SecurityUtils {
      * @return Token 字符串
      */
     public static String getTokenFromRequest() {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        ServletRequestAttributes servletRequestAttributes = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes());
+        if(Objects.isNull(servletRequestAttributes)) {
+            return null;
+        }
+        HttpServletRequest request = servletRequestAttributes.getRequest();
         return request.getHeader(HttpHeaders.AUTHORIZATION);
     }
 
