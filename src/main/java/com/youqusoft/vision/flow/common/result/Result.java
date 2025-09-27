@@ -1,5 +1,6 @@
 package com.youqusoft.vision.flow.common.result;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -32,11 +33,11 @@ public class Result<T> implements Serializable {
     }
 
     public static <T> Result<T> failed() {
-        return result(ResultCode.SYSTEM_EXECUTION_ERROR.getCode(), ResultCode.SYSTEM_EXECUTION_ERROR.getMsg(), null);
+        return result(ResultCode.SYSTEM_ERROR.getCode(), ResultCode.SYSTEM_ERROR.getMsg(), null);
     }
 
     public static <T> Result<T> failed(String msg) {
-        return result(ResultCode.SYSTEM_EXECUTION_ERROR.getCode(), msg, null);
+        return result(ResultCode.SYSTEM_ERROR.getCode(), msg, null);
     }
 
     public static <T> Result<T> judge(boolean status) {
@@ -52,7 +53,7 @@ public class Result<T> implements Serializable {
     }
 
     public static <T> Result<T> failed(IResultCode resultCode, String msg) {
-        return result(resultCode.getCode(), msg, null);
+        return result(resultCode.getCode(), StrUtil.isNotBlank(msg) ? msg : resultCode.getMsg(), null);
     }
 
     private static <T> Result<T> result(IResultCode resultCode, T data) {

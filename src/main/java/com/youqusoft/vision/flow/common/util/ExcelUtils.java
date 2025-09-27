@@ -1,7 +1,7 @@
 package com.youqusoft.vision.flow.common.util;
 
-import com.alibaba.excel.EasyExcel;
-import com.youqusoft.vision.flow.common.base.BaseAnalysisEventListener;
+import cn.idev.excel.EasyExcel;
+import cn.idev.excel.event.AnalysisEventListener;
 
 import java.io.InputStream;
 
@@ -13,8 +13,7 @@ import java.io.InputStream;
  */
 public class ExcelUtils {
 
-    public static <T> String importExcel(InputStream is, Class clazz, BaseAnalysisEventListener<T> listener) {
+    public static <T> void importExcel(InputStream is, Class clazz, AnalysisEventListener<T> listener) {
         EasyExcel.read(is, clazz, listener).sheet().doRead();
-        return listener.getMsg();
     }
 }
