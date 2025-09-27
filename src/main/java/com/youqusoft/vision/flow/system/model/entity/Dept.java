@@ -6,9 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 部门实体
+ * 部门实体对象
  *
- * @author Ray
+ * @author Ray.Hao
  * @since 2024/06/23
  */
 @TableName("sys_dept")

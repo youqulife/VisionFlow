@@ -1,8 +1,8 @@
 package com.youqusoft.vision.flow.system.model.dto;
 
-import com.alibaba.excel.annotation.ExcelProperty;
-import com.alibaba.excel.annotation.format.DateTimeFormat;
-import com.alibaba.excel.annotation.write.style.ColumnWidth;
+import cn.idev.excel.annotation.ExcelProperty;
+import cn.idev.excel.annotation.format.DateTimeFormat;
+import cn.idev.excel.annotation.write.style.ColumnWidth;
 import lombok.Data;
 
 import java.time.LocalDateTime;

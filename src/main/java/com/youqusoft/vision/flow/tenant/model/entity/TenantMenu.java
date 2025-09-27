@@ -1,7 +1,6 @@
-package com.youqusoft.vision.flow.system.model.entity;
+package com.youqusoft.vision.flow.tenant.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 @TableName("sys_menu")
 @Getter
 @Setter
-public class Menu {
+public class TenantMenu {
     /**
      * 菜单ID
      */

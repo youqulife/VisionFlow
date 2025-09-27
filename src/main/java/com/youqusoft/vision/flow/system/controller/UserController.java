@@ -1,14 +1,14 @@
 package com.youqusoft.vision.flow.system.controller;
 
-import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.ExcelWriter;
+import cn.idev.excel.EasyExcel;
+import cn.idev.excel.ExcelWriter;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.youqusoft.vision.flow.common.annotation.Log;
 import com.youqusoft.vision.flow.common.annotation.RepeatSubmit;
-import com.youqusoft.vision.flow.system.enums.ContactType;
 import com.youqusoft.vision.flow.common.enums.LogModuleEnum;
 import com.youqusoft.vision.flow.common.model.Option;
+import com.youqusoft.vision.flow.common.result.ExcelResult;
 import com.youqusoft.vision.flow.common.result.PageResult;
 import com.youqusoft.vision.flow.common.result.Result;
 import com.youqusoft.vision.flow.common.util.ExcelUtils;
@@ -19,7 +19,7 @@ import com.youqusoft.vision.flow.system.model.dto.UserImportDTO;
 import com.youqusoft.vision.flow.system.model.entity.User;
 import com.youqusoft.vision.flow.system.model.form.*;
 import com.youqusoft.vision.flow.system.model.query.UserPageQuery;
-import com.youqusoft.vision.flow.system.model.vo.UserInfoVO;
+import com.youqusoft.vision.flow.system.model.dto.CurrentUserDTO;
 import com.youqusoft.vision.flow.system.model.vo.UserPageVO;
 import com.youqusoft.vision.flow.system.model.vo.UserProfileVO;
 import com.youqusoft.vision.flow.system.service.UserService;
@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * 用户控制层
  *
- * @author Ray
+ * @author Ray.Hao
  * @since 2022/10/16
  */
 @Tag(name = "02.用户接口")
@@ -78,8 +78,9 @@ public class UserController {
         return Result.judge(result);
     }
 
-    @Operation(summary = "用户表单数据")
+    @Operation(summary = "获取用户表单数据")
     @GetMapping("/{userId}/form")
+    @PreAuthorize("@ss.hasPerm('sys:user:edit')")
     @Log(value = "用户表单数据", module = LogModuleEnum.USER)
     public Result<UserForm> getUserForm(
             @Parameter(description = "用户ID") @PathVariable Long userId
@@ -113,6 +114,7 @@ public class UserController {
 
     @Operation(summary = "修改用户状态")
     @PatchMapping(value = "/{userId}/status")
+    @PreAuthorize("@ss.hasPerm('sys:user:edit')")
     @Log(value = "修改用户状态", module = LogModuleEnum.USER)
     public Result<Void> updateUserStatus(
             @Parameter(description = "用户ID") @PathVariable Long userId,
@@ -128,15 +130,15 @@ public class UserController {
     @Operation(summary = "获取当前登录用户信息")
     @GetMapping("/me")
     @Log(value = "获取当前登录用户信息", module = LogModuleEnum.USER)
-    public Result<UserInfoVO> getCurrentUserInfo() {
-        UserInfoVO userInfoVO = userService.getCurrentUserInfo();
-        return Result.success(userInfoVO);
+    public Result<CurrentUserDTO> getCurrentUser() {
+        CurrentUserDTO currentUserDTO = userService.getCurrentUserInfo();
+        return Result.success(currentUserDTO);
     }
 
     @Operation(summary = "用户导入模板下载")
     @GetMapping("/template")
     @Log(value = "用户导入模板下载", module = LogModuleEnum.USER)
-    public void downloadTemplate(HttpServletResponse response) throws IOException {
+    public void downloadTemplate(HttpServletResponse response)  {
         String fileName = "用户导入模板.xlsx";
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
@@ -144,23 +146,27 @@ public class UserController {
         String fileClassPath = "templates" + File.separator + "excel" + File.separator + fileName;
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(fileClassPath);
 
-        ServletOutputStream outputStream = response.getOutputStream();
-        ExcelWriter excelWriter = EasyExcel.write(outputStream).withTemplate(inputStream).build();
-
-        excelWriter.finish();
+        try (ServletOutputStream outputStream = response.getOutputStream();
+             ExcelWriter excelWriter = EasyExcel.write(outputStream).withTemplate(inputStream).build()) {
+            excelWriter.finish();
+        } catch (IOException e) {
+            throw new RuntimeException("用户导入模板下载失败", e);
+        }
     }
 
     @Operation(summary = "导入用户")
     @PostMapping("/import")
+    @PreAuthorize("@ss.hasPerm('sys:user:import')")
     @Log(value = "导入用户", module = LogModuleEnum.USER)
-    public Result<String> importUsers(MultipartFile file) throws IOException {
+    public Result<ExcelResult> importUsers(MultipartFile file) throws IOException {
         UserImportListener listener = new UserImportListener();
-        String msg = ExcelUtils.importExcel(file.getInputStream(), UserImportDTO.class, listener);
-        return Result.success(msg);
+        ExcelUtils.importExcel(file.getInputStream(), UserImportDTO.class, listener);
+        return Result.success(listener.getExcelResult());
     }
 
     @Operation(summary = "导出用户")
     @GetMapping("/export")
+    @PreAuthorize("@ss.hasPerm('sys:user:export')")
     @Log(value = "导出用户", module = LogModuleEnum.USER)
     public void exportUsers(UserPageQuery queryParams, HttpServletResponse response) throws IOException {
         String fileName = "用户列表.xlsx";
@@ -191,7 +197,7 @@ public class UserController {
 
     @Operation(summary = "重置用户密码")
     @PutMapping(value = "/{userId}/password/reset")
-    @PreAuthorize("@ss.hasPerm('sys:user:password:reset')")
+    @PreAuthorize("@ss.hasPerm('sys:user:reset-password')")
     public Result<?> resetPassword(
             @Parameter(description = "用户ID") @PathVariable Long userId,
             @RequestParam String password
@@ -203,43 +209,50 @@ public class UserController {
     @Operation(summary = "修改密码")
     @PutMapping(value = "/password")
     public Result<?> changePassword(
-            @RequestBody PasswordChangeForm data
+            @RequestBody PasswordUpdateForm data
     ) {
         Long currUserId = SecurityUtils.getUserId();
         boolean result = userService.changePassword(currUserId, data);
         return Result.judge(result);
     }
 
-    @Operation(summary = "发送短信/邮箱验证码")
-    @PostMapping(value = "/send-verification-code")
-    public Result<?> sendVerificationCode(
-            @Parameter(description = "联系方式（手机号码或邮箱地址）", required = true) @RequestParam String contact,
-            @Parameter(description = "联系方式类型（Mobile或Email）", required = true) @RequestParam ContactType contactType
+    @Operation(summary = "发送短信验证码（绑定或更换手机号）")
+    @PostMapping(value = "/mobile/code")
+    public Result<?> sendMobileCode(
+            @Parameter(description = "手机号码", required = true) @RequestParam String mobile
     ) {
-        boolean result = userService.sendVerificationCode(contact, contactType);
+        boolean result = userService.sendMobileCode(mobile);
         return Result.judge(result);
     }
 
-    @Operation(summary = "个人中心绑定用户手机号")
+    @Operation(summary = "绑定或更换手机号")
     @PutMapping(value = "/mobile")
-    public Result<?> bindMobile(
-            @RequestBody @Validated MobileBindingForm data
+    public Result<?> bindOrChangeMobile(
+            @RequestBody @Validated MobileUpdateForm data
     ) {
-        boolean result = userService.bindMobile(data);
+        boolean result = userService.bindOrChangeMobile(data);
         return Result.judge(result);
     }
 
+    @Operation(summary = "发送邮箱验证码（绑定或更换邮箱）")
+    @PostMapping(value = "/email/code")
+    public Result<Void> sendEmailCode(
+            @Parameter(description = "邮箱地址", required = true) @RequestParam String email
+    ) {
+        userService.sendEmailCode(email);
+        return Result.success();
+    }
 
-    @Operation(summary = "个人中心绑定用户邮箱")
+    @Operation(summary = "绑定或更换邮箱")
     @PutMapping(value = "/email")
-    public Result<?> bindEmail(
-            @RequestBody @Validated EmailBindingForm data
+    public Result<?> bindOrChangeEmail(
+            @RequestBody @Validated EmailUpdateForm data
     ) {
-        boolean result = userService.bindEmail(data);
+        boolean result = userService.bindOrChangeEmail(data);
         return Result.judge(result);
     }
 
-    @Operation(summary = "用户下拉选项")
+    @Operation(summary = "获取用户下拉选项")
     @GetMapping("/options")
     public Result<List<Option<String>>> listUserOptions() {
         List<Option<String>> list = userService.listUserOptions();

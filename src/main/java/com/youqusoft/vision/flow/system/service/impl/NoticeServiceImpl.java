@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.youqusoft.vision.flow.common.exception.BusinessException;
 import com.youqusoft.vision.flow.core.security.util.SecurityUtils;
-import com.youqusoft.vision.flow.shared.websocket.service.OnlineUserService;
 import com.youqusoft.vision.flow.system.converter.NoticeConverter;
 import com.youqusoft.vision.flow.system.enums.NoticePublishStatusEnum;
 import com.youqusoft.vision.flow.system.enums.NoticeTargetEnum;
@@ -26,6 +25,7 @@ import com.youqusoft.vision.flow.system.model.vo.UserNoticePageVO;
 import com.youqusoft.vision.flow.system.model.vo.NoticeDetailVO;
 import com.youqusoft.vision.flow.system.service.NoticeService;
 import com.youqusoft.vision.flow.system.service.UserNoticeService;
+import com.youqusoft.vision.flow.system.service.UserOnlineService;
 import com.youqusoft.vision.flow.system.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -50,13 +50,10 @@ import java.util.stream.Collectors;
 public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> implements NoticeService {
 
     private final NoticeConverter noticeConverter;
-
     private final UserNoticeService userNoticeService;
-
     private final UserService userService;
-
     private final SimpMessagingTemplate messagingTemplate;
-    private final OnlineUserService onlineUserService;
+    private final UserOnlineService userOnlineService;
 
     /**
      * 获取通知公告分页列表
@@ -216,7 +213,9 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
 
             Set<String> receivers = targetUserList.stream().map(User::getUsername).collect(Collectors.toSet());
 
-            Set<String> allOnlineUsers = onlineUserService.getAllOnlineUsers();
+            Set<String> allOnlineUsers = userOnlineService.getOnlineUsers().stream()
+              .map(UserOnlineService.UserOnlineDTO::getUsername)
+              .collect(Collectors.toSet());
 
             // 找出在线用户的通知接收者
             Set<String> onlineReceivers = new HashSet<>(CollectionUtil.intersection(receivers, allOnlineUsers));
@@ -266,10 +265,9 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
     }
 
     /**
-     * 阅读获取通知公告详情
      *
      * @param id 通知公告ID
-     * @return
+     * @return NoticeDetailVO 通知公告详情
      */
     @Override
     public NoticeDetailVO getNoticeDetail(Long id) {

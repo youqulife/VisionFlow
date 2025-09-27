@@ -13,6 +13,7 @@ import com.youqusoft.vision.flow.system.model.vo.VisitTrendVO;
 import com.youqusoft.vision.flow.system.service.LogService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

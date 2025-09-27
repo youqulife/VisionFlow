@@ -2,11 +2,12 @@ package com.youqusoft.vision.flow.system.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.youqusoft.vision.flow.common.model.Option;
 import com.youqusoft.vision.flow.system.model.entity.Dict;
 import com.youqusoft.vision.flow.system.model.form.DictForm;
 import com.youqusoft.vision.flow.system.model.query.DictPageQuery;
+import com.youqusoft.vision.flow.system.model.vo.DictItemOptionVO;
 import com.youqusoft.vision.flow.system.model.vo.DictPageVO;
-import com.youqusoft.vision.flow.system.model.vo.DictVO;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
 public interface DictService extends IService<Dict> {
 
     /**
-     * 字典分页列表
+     * 获取字典分页列表
      *
      * @param queryParams 分页查询对象
      * @return 字典分页列表
@@ -27,7 +28,14 @@ public interface DictService extends IService<Dict> {
     Page<DictPageVO> getDictPage(DictPageQuery queryParams);
 
     /**
-     * 获取字典表单详情
+     * 获取字典列表
+     *
+     * @return 字典列表
+     */
+    List<Option<String>> getDictList();
+
+    /**
+     * 获取字典表单数据
      *
      * @param id 字典ID
      * @return 字典表单
@@ -58,11 +66,11 @@ public interface DictService extends IService<Dict> {
      */
     void deleteDictByIds(List<String> ids);
 
-
     /**
-     *  获取字典列表（包含字典数据）
+     * 根据字典ID列表获取字典编码列表
      *
-     * @return 字典列表
+     * @param ids 字典ID列表
+     * @return 字典编码列表
      */
-    List<DictVO> getAllDictWithData();
+    List<String> getDictCodesByIds(List<String> ids);
 }

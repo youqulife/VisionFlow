@@ -1,8 +1,9 @@
 package com.youqusoft.vision.flow.system.converter;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.youqusoft.vision.flow.common.model.Option;
 import com.youqusoft.vision.flow.system.model.entity.User;
-import com.youqusoft.vision.flow.system.model.vo.UserInfoVO;
+import com.youqusoft.vision.flow.system.model.dto.CurrentUserDTO;
 import com.youqusoft.vision.flow.system.model.vo.UserPageVO;
 import com.youqusoft.vision.flow.system.model.vo.UserProfileVO;
 import com.youqusoft.vision.flow.system.model.bo.UserBO;
@@ -14,10 +15,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
+import java.util.List;
+
 /**
  * 用户对象转换器
  *
- * @author haoxr
+ * @author Ray.Hao
  * @since 2022/6/8
  */
 @Mapper(componentModel = "spring")
@@ -35,12 +38,20 @@ public interface UserConverter {
     @Mappings({
             @Mapping(target = "userId", source = "id")
     })
-    UserInfoVO toUserInfoVo(User entity);
+    CurrentUserDTO toCurrentUserDto(User entity);
 
     User toEntity(UserImportDTO vo);
 
 
-    UserProfileVO toProfileVO(UserBO bo);
+    UserProfileVO toProfileVo(UserBO bo);
 
     User toEntity(UserProfileForm formData);
+
+    @Mappings({
+            @Mapping(target = "label", source = "nickname"),
+            @Mapping(target = "value", source = "id")
+    })
+    Option<String> toOption(User entity);
+
+    List<Option<String>> toOptions(List<User> list);
 }

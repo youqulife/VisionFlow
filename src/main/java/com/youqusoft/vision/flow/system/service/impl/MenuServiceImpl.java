@@ -10,9 +10,9 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.youqusoft.vision.flow.core.security.util.SecurityUtils;
 import com.youqusoft.vision.flow.system.converter.MenuConverter;
 import com.youqusoft.vision.flow.system.mapper.MenuMapper;
-import com.youqusoft.vision.flow.system.model.bo.RouteBO;
 import com.youqusoft.vision.flow.shared.codegen.model.entity.GenConfig;
 import com.youqusoft.vision.flow.system.model.entity.Menu;
 import com.youqusoft.vision.flow.system.model.form.MenuForm;
@@ -35,9 +35,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 菜单业务实现类
+ * 菜单服务实现类
  *
- * @author haoxr
+ * @author Ray.Hao
  * @since 2020/11/06
  */
 @Service
@@ -139,18 +139,42 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     }
 
     /**
-     * 获取菜单路由列表
+     * 获取当前用户的菜单路由列表
      */
     @Override
-    public List<RouteVO> listRoutes(Set<String> roles) {
+    public List<RouteVO> listCurrentUserRoutes() {
+        Set<String> roleCodes = SecurityUtils.getRoles();
 
-        if (CollectionUtil.isEmpty(roles)) {
+        if (CollectionUtil.isEmpty(roleCodes)) {
             return Collections.emptyList();
         }
 
-        List<RouteBO> menuList = this.baseMapper.listRoutes(roles);
+        List<Menu> menuList;
+        if (SecurityUtils.isRoot()) {
+            // 超级管理员获取所有菜单
+            menuList = this.list(new LambdaQueryWrapper<Menu>()
+                    .ne(Menu::getType, MenuTypeEnum.BUTTON.getValue())
+                    .orderByAsc(Menu::getSort)
+            );
+        } else {
+            menuList = this.baseMapper.getMenusByRoleCodes(roleCodes);
+        }
         return buildRoutes(SystemConstants.ROOT_NODE_ID, menuList);
     }
+
+    /**
+     * 获取当前用户的菜单路由列表（指定数据源）
+     * 
+     * @param datasource 数据源名称
+     *                   - master: 主库菜单数据
+     *                   - naiveui: NaiveUI项目菜单数据  
+     *                   - template: 模板项目菜单数据
+     */
+    @Override
+    public List<RouteVO> listCurrentUserRoutes(String datasource) {
+        return listCurrentUserRoutes();
+    }
+
 
     /**
      * 递归生成菜单路由层级列表
@@ -159,10 +183,10 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
      * @param menuList 菜单列表
      * @return 路由层级列表
      */
-    private List<RouteVO> buildRoutes(Long parentId, List<RouteBO> menuList) {
+    private List<RouteVO> buildRoutes(Long parentId, List<Menu> menuList) {
         List<RouteVO> routeList = new ArrayList<>();
 
-        for (RouteBO menu : menuList) {
+        for (Menu menu : menuList) {
             if (menu.getParentId().equals(parentId)) {
                 RouteVO routeVO = toRouteVo(menu);
                 List<RouteVO> children = buildRoutes(menu.getId(), menuList);
@@ -179,34 +203,34 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     /**
      * 根据RouteBO创建RouteVO
      */
-    private RouteVO toRouteVo(RouteBO routeBO) {
+    private RouteVO toRouteVo(Menu menu) {
         RouteVO routeVO = new RouteVO();
         // 获取路由名称
-        String routeName = routeBO.getRouteName();
+        String routeName = menu.getRouteName();
         if (StrUtil.isBlank(routeName)) {
             // 路由 name 需要驼峰，首字母大写
-            routeName = StringUtils.capitalize(StrUtil.toCamelCase(routeBO.getRoutePath(), '-'));
+            routeName = StringUtils.capitalize(StrUtil.toCamelCase(menu.getRoutePath(), '-'));
         }
         // 根据name路由跳转 this.$router.push({name:xxx})
         routeVO.setName(routeName);
 
         // 根据path路由跳转 this.$router.push({path:xxx})
-        routeVO.setPath(routeBO.getRoutePath());
-        routeVO.setRedirect(routeBO.getRedirect());
-        routeVO.setComponent(routeBO.getComponent());
+        routeVO.setPath(menu.getRoutePath());
+        routeVO.setRedirect(menu.getRedirect());
+        routeVO.setComponent(menu.getComponent());
 
         RouteVO.Meta meta = new RouteVO.Meta();
-        meta.setTitle(routeBO.getName());
-        meta.setIcon(routeBO.getIcon());
-        meta.setHidden(StatusEnum.DISABLE.getValue().equals(routeBO.getVisible()));
+        meta.setTitle(menu.getName());
+        meta.setIcon(menu.getIcon());
+        meta.setHidden(StatusEnum.DISABLE.getValue().equals(menu.getVisible()));
         // 【菜单】是否开启页面缓存
-        if (MenuTypeEnum.MENU.equals(routeBO.getType())
-                && ObjectUtil.equals(routeBO.getKeepAlive(), 1)) {
+        if (MenuTypeEnum.MENU.getValue().equals(menu.getType())
+                && ObjectUtil.equals(menu.getKeepAlive(), 1)) {
             meta.setKeepAlive(true);
         }
-        meta.setAlwaysShow(ObjectUtil.equals(routeBO.getAlwaysShow(), 1));
+        meta.setAlwaysShow(ObjectUtil.equals(menu.getAlwaysShow(), 1));
 
-        String paramsJson = routeBO.getParams();
+        String paramsJson = menu.getParams();
         // 将 JSON 字符串转换为 Map<String, String>
         if (StrUtil.isNotBlank(paramsJson)) {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -229,19 +253,19 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     @CacheEvict(cacheNames = "menu", key = "'routes'")
     public boolean saveMenu(MenuForm menuForm) {
 
-        MenuTypeEnum menuType = menuForm.getType();
+        Integer menuType = menuForm.getType();
 
-        if (menuType == MenuTypeEnum.CATALOG) {  // 如果是外链
+        if (MenuTypeEnum.CATALOG.getValue().equals(menuType)) {  // 如果是目录
             String path = menuForm.getRoutePath();
             if (menuForm.getParentId() == 0 && !path.startsWith("/")) {
                 menuForm.setRoutePath("/" + path); // 一级目录需以 / 开头
             }
             menuForm.setComponent("Layout");
-        } else if (menuType == MenuTypeEnum.EXTLINK) {   // 如果是目录
-
+        } else if (MenuTypeEnum.EXTLINK.getValue().equals(menuType)) {
+            // 外链菜单组件设置为 null
             menuForm.setComponent(null);
         }
-        if (Objects.equals(menuForm.getParentId(), menuForm.getId())){
+        if (Objects.equals(menuForm.getParentId(), menuForm.getId())) {
             throw new RuntimeException("父级菜单不能为当前菜单");
         }
         Menu entity = menuConverter.toEntity(menuForm);
@@ -257,12 +281,12 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
             entity.setParams(null);
         }
         // 新增类型为菜单时候 路由名称唯一
-        if (MenuTypeEnum.MENU.equals(menuType)) {
+        if (MenuTypeEnum.MENU.getValue().equals(menuType)) {
             Assert.isFalse(this.exists(new LambdaQueryWrapper<Menu>()
                     .eq(Menu::getRouteName, entity.getRouteName())
                     .ne(menuForm.getId() != null, Menu::getId, menuForm.getId())
             ), "路由名称已存在");
-        }else{
+        } else {
             // 其他类型时 给路由名称赋值为空
             entity.setRouteName(null);
         }
@@ -281,7 +305,8 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
 
     /**
      * 更新子菜单树路径
-     * @param id 当前菜单ID
+     *
+     * @param id       当前菜单ID
      * @param treePath 当前菜单树路径
      */
     private void updateChildrenTreePath(Long id, String treePath) {
@@ -425,7 +450,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
         menu.setRouteName(entityName);
         menu.setRoutePath(StrUtil.toSymbolCase(entityName, '-'));
         menu.setComponent(genConfig.getModuleName() + "/" + StrUtil.toSymbolCase(entityName, '-') + "/index");
-        menu.setType(MenuTypeEnum.MENU);
+        menu.setType(MenuTypeEnum.MENU.getValue());
         menu.setSort(sort);
         menu.setVisible(1);
         boolean result = this.save(menu);
@@ -437,20 +462,20 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
             this.updateById(menu);
 
             // 生成CURD按钮权限
-            String permPrefix = genConfig.getModuleName() + ":" + StrUtil.lowerFirst(entityName) + ":";
+            String permPrefix = genConfig.getModuleName() + ":" + genConfig.getTableName().replace("_", "-") + ":";
             String[] actions = {"查询", "新增", "编辑", "删除"};
             String[] perms = {"query", "add", "edit", "delete"};
 
             for (int i = 0; i < actions.length; i++) {
                 Menu button = new Menu();
                 button.setParentId(menu.getId());
-                button.setType(MenuTypeEnum.BUTTON);
+                button.setType(MenuTypeEnum.BUTTON.getValue());
                 button.setName(actions[i]);
                 button.setPerm(permPrefix + perms[i]);
                 button.setSort(i + 1);
                 this.save(button);
 
-                // 生成 treepath
+                // 生成treePath
                 button.setTreePath(treePath + "," + button.getId());
                 this.updateById(button);
             }

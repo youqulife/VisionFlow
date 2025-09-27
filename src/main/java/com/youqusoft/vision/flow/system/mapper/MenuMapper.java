@@ -1,7 +1,6 @@
 package com.youqusoft.vision.flow.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.youqusoft.vision.flow.system.model.bo.RouteBO;
 import com.youqusoft.vision.flow.system.model.entity.Menu;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -20,7 +19,9 @@ public interface MenuMapper extends BaseMapper<Menu> {
 
     /**
      * 获取菜单路由列表
+     *
+     * @param roleCodes 角色编码集合
      */
-    List<RouteBO> listRoutes(Set<String> roles);
+    List<Menu> getMenusByRoleCodes(Set<String> roleCodes);
 
 }

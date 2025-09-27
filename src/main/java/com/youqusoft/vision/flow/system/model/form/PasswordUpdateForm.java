@@ -6,12 +6,12 @@ import lombok.Data;
 /**
  * 修改密码表单
  *
- * @author Ray
+ * @author Ray.Hao
  * @since 2024/8/13
  */
 @Schema(description = "修改密码表单")
 @Data
-public class PasswordChangeForm {
+public class PasswordUpdateForm {
 
     @Schema(description = "原密码")
     private String oldPassword;
@@ -19,4 +19,6 @@ public class PasswordChangeForm {
     @Schema(description = "新密码")
     private String newPassword;
 
+    @Schema(description = "确认密码")
+    private String confirmPassword;
 }

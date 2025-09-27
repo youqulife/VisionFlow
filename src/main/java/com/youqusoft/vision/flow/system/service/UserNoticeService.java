@@ -8,6 +8,8 @@ import com.youqusoft.vision.flow.system.model.query.NoticePageQuery;
 import com.youqusoft.vision.flow.system.model.vo.UserNoticePageVO;
 import com.youqusoft.vision.flow.system.model.vo.NoticePageVO;
 
+import java.util.List;
+
 /**
  * 用户公告状态服务类
  *

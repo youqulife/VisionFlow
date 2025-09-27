@@ -9,6 +9,7 @@ import com.youqusoft.vision.flow.system.model.vo.VisitStatsVO;
 import com.youqusoft.vision.flow.system.model.vo.VisitTrendVO;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 系统日志 服务接口

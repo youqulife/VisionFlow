@@ -5,10 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.youqusoft.vision.flow.system.model.entity.Dict;
 import com.youqusoft.vision.flow.system.model.query.DictPageQuery;
 import com.youqusoft.vision.flow.system.model.vo.DictPageVO;
-import com.youqusoft.vision.flow.system.model.vo.DictVO;
 import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
 
 /**
  * 字典 访问层
@@ -27,13 +24,6 @@ public interface DictMapper extends BaseMapper<Dict> {
      * @return 字典分页列表
      */
     Page<DictPageVO> getDictPage(Page<DictPageVO> page, DictPageQuery queryParams);
-
-    /**
-     * 获取字典列表（包含字典数据）
-     *
-     * @return 字典列表
-     */
-    List<DictVO> getAllDictWithData();
 
 }
 

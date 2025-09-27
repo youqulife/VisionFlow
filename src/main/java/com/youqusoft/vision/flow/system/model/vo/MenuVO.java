@@ -1,7 +1,6 @@
 package com.youqusoft.vision.flow.system.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.youqusoft.vision.flow.system.enums.MenuTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -21,7 +20,7 @@ public class MenuVO {
     private String name;
 
     @Schema(description="菜单类型")
-    private MenuTypeEnum type;
+    private Integer type;
 
     @Schema(description = "路由名称")
     private String routeName;

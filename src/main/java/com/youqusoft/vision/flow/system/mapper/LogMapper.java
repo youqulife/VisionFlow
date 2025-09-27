@@ -6,6 +6,7 @@ import com.youqusoft.vision.flow.system.model.bo.VisitStatsBO;
 import com.youqusoft.vision.flow.system.model.entity.Log;
 import com.youqusoft.vision.flow.system.model.query.LogPageQuery;
 import com.youqusoft.vision.flow.system.model.vo.LogPageVO;
+import com.youqusoft.vision.flow.system.model.vo.VisitStatsVO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

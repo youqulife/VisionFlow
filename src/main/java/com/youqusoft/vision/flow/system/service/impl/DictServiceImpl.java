@@ -5,16 +5,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.youqusoft.vision.flow.common.exception.BusinessException;
+import com.youqusoft.vision.flow.common.model.Option;
 import com.youqusoft.vision.flow.system.converter.DictConverter;
-import com.youqusoft.vision.flow.system.converter.DictDataConverter;
 import com.youqusoft.vision.flow.system.mapper.DictMapper;
 import com.youqusoft.vision.flow.system.model.entity.Dict;
-import com.youqusoft.vision.flow.system.model.entity.DictData;
+import com.youqusoft.vision.flow.system.model.entity.DictItem;
 import com.youqusoft.vision.flow.system.model.form.DictForm;
 import com.youqusoft.vision.flow.system.model.query.DictPageQuery;
 import com.youqusoft.vision.flow.system.model.vo.DictPageVO;
-import com.youqusoft.vision.flow.system.model.vo.DictVO;
-import com.youqusoft.vision.flow.system.service.DictDataService;
+import com.youqusoft.vision.flow.system.service.DictItemService;
 import com.youqusoft.vision.flow.system.service.DictService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * 数据字典业务实现类
+ * 字典业务实现类
  *
  * @author haoxr
  * @since 2022/10/12
@@ -32,9 +31,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements DictService {
 
-    private final DictDataService dictDataService;
+    private final DictItemService dictItemService;
     private final DictConverter dictConverter;
-    private final DictDataConverter dictDataConverter;
 
     /**
      * 字典分页列表
@@ -52,6 +50,20 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
     }
 
     /**
+     * 获取字典列表
+     *
+     * @return 字典列表
+     */
+    @Override
+    public List<Option<String>> getDictList() {
+        return this.list(new LambdaQueryWrapper<Dict>().eq(Dict::getStatus, 1))
+                .stream()
+                .map(item -> new Option<>(item.getDictCode(), item.getName()))
+                .toList();
+    }
+
+
+    /**
      * 新增字典
      *
      * @param dictForm 字典表单数据
@@ -65,7 +77,7 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
         String dictCode = entity.getDictCode();
 
         long count = this.count(new LambdaQueryWrapper<Dict>()
-            .eq(Dict::getDictCode, dictCode)
+                .eq(Dict::getDictCode, dictCode)
         );
 
         Assert.isTrue(count == 0, "字典编码已存在");
@@ -96,21 +108,43 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
      * @param dictForm 字典表单
      */
     @Override
+    @Transactional
     public boolean updateDict(Long id, DictForm dictForm) {
-        // 更新字典
-        Dict entity = dictConverter.toEntity(dictForm);
-
-        // 校验 code 是否唯一
-        String dictCode = entity.getDictCode();
-        long count = this.count(new LambdaQueryWrapper<Dict>()
-                .eq(Dict::getDictCode, dictCode)
-                .ne(Dict::getId, id)
-        );
-        if (count > 0) {
-            throw new BusinessException("字典编码已存在");
+        // 获取字典
+        Dict entity = this.getById(id);
+        if (entity == null) {
+            throw new BusinessException("字典不存在");
         }
-
-        return this.updateById(entity);
+        // 校验 code 是否唯一
+        String dictCode = dictForm.getDictCode();
+        if (!entity.getDictCode().equals(dictCode)) {
+            long count = this.count(new LambdaQueryWrapper<Dict>()
+                    .eq(Dict::getDictCode, dictCode)
+            );
+            Assert.isTrue(count == 0, "字典编码已存在");
+        }
+        // 更新字典
+        Dict dict = dictConverter.toEntity(dictForm);
+        dict.setId(id);
+        boolean result = this.updateById(dict);
+        if (result) {
+            // 更新字典数据
+            List<DictItem> dictItemList = dictItemService.list(
+                    new LambdaQueryWrapper<DictItem>()
+                            .eq(DictItem::getDictCode, entity.getDictCode())
+                            .select(DictItem::getId)
+            );
+            if (!dictItemList.isEmpty()){
+                List<Long> dictItemIds = dictItemList.stream().map(DictItem::getId).toList();
+                DictItem dictItem = new DictItem();
+                dictItem.setDictCode(dict.getDictCode());
+                dictItemService.update(dictItem,
+                        new LambdaQueryWrapper<DictItem>()
+                                .in(DictItem::getId, dictItemIds)
+                );
+            }
+        }
+        return result;
     }
 
     /**
@@ -118,32 +152,34 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict> implements Di
      *
      * @param ids 字典ID，多个以英文逗号(,)分割
      */
-    @Override
     @Transactional
+    @Override
     public void deleteDictByIds(List<String> ids) {
-        for (String id : ids) {
-            Dict dict = this.getById(id);
-            if (dict != null) {
-                boolean removeResult = this.removeById(id);
-                // 删除字典下的字典项
-                if (removeResult) {
-                    dictDataService.remove(
-                            new LambdaQueryWrapper<DictData>()
-                                    .eq(DictData::getDictCode, dict.getDictCode())
-                    );
-                }
+        // 删除字典
+        this.removeByIds(ids);
 
-            }
+        // 删除字典项
+        List<Dict> list = this.listByIds(ids);
+        if (!list.isEmpty()) {
+            List<String> dictCodes = list.stream().map(Dict::getDictCode).toList();
+            dictItemService.remove(new LambdaQueryWrapper<DictItem>()
+                    .in(DictItem::getDictCode, dictCodes)
+            );
         }
     }
 
-        /**
-         * 获取字典列表（包含字典数据）
-         */
-        @Override
-        public List<DictVO> getAllDictWithData() {
-            return this.baseMapper.getAllDictWithData();
-        }
+    /**
+     * 根据字典ID列表获取字典编码列表
+     *
+     * @param ids 字典ID列表
+     * @return 字典编码列表
+     */
+    @Override
+    public List<String> getDictCodesByIds(List<String> ids) {
+        List<Dict> dictList = this.listByIds(ids);
+        return dictList.stream().map(Dict::getDictCode).toList();
+    }
+
 }
 
 

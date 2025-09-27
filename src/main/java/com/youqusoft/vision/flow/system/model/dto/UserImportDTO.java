@@ -1,12 +1,12 @@
 package com.youqusoft.vision.flow.system.model.dto;
 
-import com.alibaba.excel.annotation.ExcelProperty;
+import cn.idev.excel.annotation.ExcelProperty;
 import lombok.Data;
 
 /**
  * 用户导入对象
  *
- * @author haoxr
+ * @author Ray.Hao
  * @since 2022/4/10
  */
 @Data
