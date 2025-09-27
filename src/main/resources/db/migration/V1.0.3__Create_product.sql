@@ -2,7 +2,7 @@
 -- 表：顾客表 (customers)
 -- 功能：存储眼镜店的所有顾客基本信息
 -- =============================================
-CREATE TABLE customers
+CREATE TABLE customer
 (
     id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
     tenant_id    BIGINT                             NOT NULL COMMENT '租户ID',
@@ -20,8 +20,6 @@ CREATE TABLE customers
     updated_at   TIMESTAMP                          NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
 
     -- 索引定义
-    -- 添加租户外键
-    FOREIGN KEY (tenant_id) REFERENCES tenants (id),
     -- 修改索引，包含tenant_id
     UNIQUE INDEX idx_tenant_phone (tenant_id, phone, is_deleted) COMMENT '手机号唯一索引（考虑软删除状态）',
     INDEX idx_tenant_name (tenant_id, name),
@@ -34,7 +32,7 @@ CREATE TABLE customers
 -- 表：验光记录表 (eye_exams)
 -- 功能：存储顾客的每次验光详细数据
 -- =============================================
-CREATE TABLE eye_exams
+CREATE TABLE eye_exam
 (
     id          BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
     customer_id BIGINT     NOT NULL COMMENT '关联的顾客ID',
@@ -62,7 +60,7 @@ CREATE TABLE eye_exams
     updated_at  TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
 
     -- 外键和索引
-    FOREIGN KEY (customer_id) REFERENCES customers (id) COMMENT '外键：关联顾客表',
+    FOREIGN KEY (customer_id) REFERENCES customer (id),
     INDEX idx_customer_date (customer_id, exam_date DESC) COMMENT '复合索引：按顾客和验光日期快速查询'
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
@@ -72,9 +70,10 @@ CREATE TABLE eye_exams
 -- 表：商品分类表 (categories)
 -- 功能：存储商品的分类信息，支持层级结构
 -- =============================================
-CREATE TABLE categories
+CREATE TABLE category
 (
     id          BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    tenant_id   BIGINT      NOT NULL COMMENT '租户ID',
     name        VARCHAR(50) NOT NULL COMMENT '分类名称',
     parent_id   BIGINT               DEFAULT NULL COMMENT '父级分类ID：用于支持多级分类，NULL表示顶级分类',
     sort_order  INT         NOT NULL DEFAULT 0 COMMENT '排序号：数字越小排序越前',
@@ -85,7 +84,7 @@ CREATE TABLE categories
     updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
 
     -- 索引
-    FOREIGN KEY (parent_id) REFERENCES categories (id) COMMENT '自关联外键：支持分类层级',
+    FOREIGN KEY (parent_id) REFERENCES category (id),
     INDEX idx_parent_sort (parent_id, sort_order) COMMENT '按父级和排序号查询索引',
     UNIQUE INDEX idx_name_parent (name, parent_id, is_deleted) COMMENT '同一父级下分类名称唯一'
 ) ENGINE = InnoDB
@@ -93,18 +92,18 @@ CREATE TABLE categories
   COLLATE = utf8mb4_unicode_ci COMMENT ='商品分类表';
 
 -- 插入默认分类数据
-INSERT INTO categories (name, parent_id, sort_order, description)
-VALUES ('镜架', NULL, 1, '光学镜架、太阳镜架等'),
-       ('镜片', NULL, 2, '各种光学镜片'),
-       ('隐形眼镜', NULL, 3, '月抛、日抛等隐形眼镜'),
-       ('护理产品', NULL, 4, '护理液、眼镜清洁剂等'),
-       ('配件', NULL, 5, '眼镜盒、眼镜布等配件'),
-       ('金属镜架', 1, 1, '金属材质的镜架'),
-       ('塑料镜架', 1, 2, '塑料材质的镜架'),
-       ('钛合金镜架', 1, 3, '钛合金材质的镜架'),
-       ('单光镜片', 2, 1, '普通单光镜片'),
-       ('渐进镜片', 2, 2, '渐进多焦点镜片'),
-       ('防蓝光镜片', 2, 3, '防蓝光功能镜片');
+INSERT INTO category (name, tenant_id, parent_id, sort_order, description)
+VALUES ('镜架', 1, NULL, 1, '光学镜架、太阳镜架等'),
+       ('镜片', 1, NULL, 2, '各种光学镜片'),
+       ('隐形眼镜', 1, NULL, 3, '月抛、日抛等隐形眼镜'),
+       ('护理产品', 1, NULL, 4, '护理液、眼镜清洁剂等'),
+       ('配件', 1, NULL, 5, '眼镜盒、眼镜布等配件'),
+       ('金属镜架', 1, 1, 1, '金属材质的镜架'),
+       ('塑料镜架', 1, 1, 2, '塑料材质的镜架'),
+       ('钛合金镜架', 1, 1, 3, '钛合金材质的镜架'),
+       ('单光镜片', 1, 2, 1, '普通单光镜片'),
+       ('渐进镜片', 1, 2, 2, '渐进多焦点镜片'),
+       ('防蓝光镜片', 1, 2, 3, '防蓝光功能镜片');
 
 -- =============================================
 -- 表：商品表 (products) - 修正版
@@ -113,6 +112,7 @@ VALUES ('镜架', NULL, 1, '光学镜架、太阳镜架等'),
 CREATE TABLE products
 (
     id               BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    tenant_id        BIGINT         NOT NULL COMMENT '租户ID',
     sku              VARCHAR(50) UNIQUE COMMENT '商品SKU编码：唯一库存单位编码',
     name             VARCHAR(200)   NOT NULL COMMENT '商品名称：展示给客户的名称',
     category_id      BIGINT         NOT NULL COMMENT '商品分类ID：关联categories表',
@@ -134,12 +134,42 @@ CREATE TABLE products
     updated_at       TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
 
     -- 外键和索引
-    FOREIGN KEY (category_id) REFERENCES categories (id) COMMENT '外键：关联商品分类表',
+    FOREIGN KEY (category_id) REFERENCES category (id),
     INDEX idx_category (category_id) COMMENT '分类查询索引',
     INDEX idx_brand (brand) COMMENT '品牌查询索引'
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='商品信息表';
+
+-- =============================================
+-- 表：订单表 (orders)
+-- 功能：存储销售订单的头信息
+-- =============================================
+CREATE TABLE orders
+(
+    id              BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    tenant_id       BIGINT                                                                    NOT NULL COMMENT '租户ID',
+    order_number    VARCHAR(50)                                                               NOT NULL UNIQUE COMMENT '订单编号：唯一订单号，可按规则生成',
+    customer_id     BIGINT                                                                    NOT NULL COMMENT '关联的顾客ID',
+    eye_exam_id     BIGINT COMMENT '关联的验光记录ID：本次订单使用的验光数据',
+    total_amount    DECIMAL(10, 2)                                                            NOT NULL DEFAULT 0.00 COMMENT '订单总金额：商品原价总和',
+    discount_amount DECIMAL(10, 2)                                                            NOT NULL DEFAULT 0.00 COMMENT '优惠金额：总优惠金额',
+    final_amount    DECIMAL(10, 2)                                                            NOT NULL DEFAULT 0.00 COMMENT '实付金额：total_amount - discount_amount',
+    status          ENUM ('draft', 'pending', 'paid', 'processing', 'completed', 'cancelled') NOT NULL DEFAULT 'draft' COMMENT '订单状态：draft-草稿, pending-待支付, paid-已支付, processing-加工中, completed-已完成, cancelled-已取消',
+    payment_method  ENUM ('cash', 'alipay', 'wechat', 'card', 'member') COMMENT '支付方式：cash-现金, alipay-支付宝, wechat-微信, card-银行卡, member-会员余额',
+    notes           TEXT COMMENT '订单备注：如特殊加工要求、取镜时间等',
+    is_deleted      TINYINT(1)                                                                NOT NULL DEFAULT 0 COMMENT '软删除标记：0-未删除, 1-已删除',
+    created_at      TIMESTAMP                                                                 NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '订单创建时间',
+    updated_at      TIMESTAMP                                                                 NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '订单最后更新时间',
+
+    -- 外键和索引
+    FOREIGN KEY (customer_id) REFERENCES customer (id),
+    FOREIGN KEY (eye_exam_id) REFERENCES eye_exam (id),
+    INDEX idx_status (status) COMMENT '订单状态查询索引'
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT ='订单主表';
+
 
 -- =============================================
 -- 表：订单明细表 (order_items) - 修正版
@@ -160,9 +190,9 @@ CREATE TABLE order_items
     created_at   TIMESTAMP                       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
 
     -- 外键和索引
-    FOREIGN KEY (order_id) REFERENCES orders (id) COMMENT '外键：关联订单表',
-    FOREIGN KEY (product_id) REFERENCES products (id) COMMENT '外键：关联商品表',
-    FOREIGN KEY (category_id) REFERENCES categories (id) COMMENT '外键：关联分类表（快照）',
+    FOREIGN KEY (order_id) REFERENCES orders (id),
+    FOREIGN KEY (product_id) REFERENCES products (id),
+    FOREIGN KEY (category_id) REFERENCES category (id),
     INDEX idx_order (order_id) COMMENT '订单查询索引：快速查找订单的所有商品'
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
