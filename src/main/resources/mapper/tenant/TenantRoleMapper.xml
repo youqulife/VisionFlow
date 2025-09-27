@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqusoft.vision.flow.tenant.mapper.TenantRoleMapper">
+
+    <!-- 获取租户角色分页列表 -->
+    <select id="getTenantRolePage" resultType="com.youqusoft.vision.flow.tenant.model.vo.TenantRoleVO">
+        SELECT
+                id,
+                tenant_id,
+                name,
+                code,
+                description,
+                is_system,
+                is_active,
+                created_at,
+                updated_at
+        FROM
+            saas_tenant_role
+        <where>
+        </where>
+    </select>
+
+</mapper>
