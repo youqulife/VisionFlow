@@ -1,113 +1,64 @@
 package com.youqusoft.vision.flow.modules.product.model.vo;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * 商品信息VO
- *
- * @author Jack.Zhang
- * @since 2025-09-26
- */
-@Data
-@Schema(description = "商品信息")
-public class ProductVO {
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
+import java.math.BigDecimal;
+import java.util.Date;
 
-    /**
-     * 主键ID
-     */
+/**
+ * 商品信息视图对象
+ *
+ * @author youqusoft
+ * @since 2025-09-27 11:59
+ */
+@Getter
+@Setter
+@Schema( description = "商品信息视图对象")
+public class ProductVO implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Schema(description = "主键ID")
     private Long id;
-
-    /**
-     * 租户ID
-     */
     @Schema(description = "租户ID")
     private Long tenantId;
-
-    /**
-     * 商品SKU编码
-     */
-    @Schema(description = "商品SKU编码")
-    private String sku;
-
-    /**
-     * 商品名称
-     */
-    @Schema(description = "商品名称")
+    @Schema(description = "商品名称：展示给客户的名称")
     private String name;
-
-    /**
-     * 商品分类ID
-     */
-    @Schema(description = "商品分类ID")
+    @Schema(description = "商品SKU编码：唯一库存单位编码")
+    private String sku;
+    @Schema(description = "商品分类ID：关联categories表")
     private Long categoryId;
-
-    /**
-     * 品牌名称
-     */
-    @Schema(description = "品牌名称")
+    @Schema(description = "品牌名称：如'依视路', '蔡司', '雷朋'等")
     private String brand;
-
-    /**
-     * 型号
-     */
-    @Schema(description = "型号")
+    @Schema(description = "型号：商品具体型号")
     private String model;
-
-    /**
-     * 折射率
-     */
-    @Schema(description = "折射率")
-    private Double refractiveIndex;
-
-    /**
-     * 镜片功能
-     */
-    @Schema(description = "镜片功能")
+    @Schema(description = "折射率：如1.56, 1.60, 1.67, 1.74等")
+    private BigDecimal refractiveIndex;
+    @Schema(description = "镜片功能：如'防蓝光', '变色', '渐进多焦点'等")
     private String lensFunction;
-
-    /**
-     * 进货价格
-     */
     @Schema(description = "进货价格")
-    private Double purchasePrice;
-
-    /**
-     * 销售价格
-     */
+    private BigDecimal purchasePrice;
     @Schema(description = "销售价格")
-    private Double salePrice;
-
-    /**
-     * 库存数量
-     */
+    private BigDecimal salePrice;
     @Schema(description = "库存数量")
     private Integer stockQuantity;
-
-    /**
-     * 最低库存预警线
-     */
     @Schema(description = "最低库存预警线")
     private Integer minStockAlert;
-
-    /**
-     * 是否上架：0-下架, 1-上架
-     */
-    @Schema(description = "是否上架")
+    @Schema(description = "是否上架：0-下架, 1-上架")
     private Integer isActive;
-
-    /**
-     * 记录创建时间
-     */
+    @Schema(description = "软删除标记：0-未删除, 1-已删除")
+    private Integer isDeleted;
     @Schema(description = "记录创建时间")
-    private LocalDateTime createdAt;
-
-    /**
-     * 记录最后更新时间
-     */
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    private LocalDateTime createTime;
     @Schema(description = "记录最后更新时间")
-    private LocalDateTime updatedAt;
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    private LocalDateTime updateTime;
 }

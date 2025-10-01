@@ -1,120 +1,70 @@
 package com.youqusoft.vision.flow.modules.customer.model.vo;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 /**
- * 验光记录VO
+ * 验光记录视图对象
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-10-01 11:31
  */
-@Data
-@Schema(description = "验光记录")
-public class EyeExamVO {
+@Getter
+@Setter
+@Schema( description = "验光记录视图对象")
+public class EyeExamVO implements Serializable {
 
-    /**
-     * 主键ID
-     */
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Schema(description = "主键ID")
     private Long id;
-
-    /**
-     * 关联的顾客ID
-     */
-    @Schema(description = "关联的顾客ID")
+    @Schema(description = "租户ID")
     private Long customerId;
-
-    /**
-     * 验光日期
-     */
+    @Schema(description = "顾客名称")
+    private String customerName;
+    @Schema(description = "顾客手机号")
+    private String customerPhone;
     @Schema(description = "验光日期")
     private LocalDate examDate;
-
-    /**
-     * 验光师姓名
-     */
-    @Schema(description = "验光师姓名")
+    @Schema(description = "验光师")
     private String optometrist;
-
-    /**
-     * 右眼球镜度数
-     */
-    @Schema(description = "右眼球镜度数")
-    private Double odSph;
-
-    /**
-     * 右眼柱镜度数
-     */
-    @Schema(description = "右眼柱镜度数")
-    private Double odCyl;
-
-    /**
-     * 右眼轴位
-     */
+    @Schema(description = "验光类型")
+    private String examType;
+    @Schema(description = "右眼球镜")
+    private BigDecimal odSph;
+    @Schema(description = "右眼柱镜")
+    private BigDecimal odCyl;
     @Schema(description = "右眼轴位")
     private Integer odAxis;
-
-    /**
-     * 右眼单眼瞳距
-     */
-    @Schema(description = "右眼单眼瞳距")
-    private Double odPd;
-
-    /**
-     * 左眼球镜度数
-     */
-    @Schema(description = "左眼球镜度数")
-    private Double osSph;
-
-    /**
-     * 左眼柱镜度数
-     */
-    @Schema(description = "左眼柱镜度数")
-    private Double osCyl;
-
-    /**
-     * 左眼轴位
-     */
+    @Schema(description = "右眼瞳距")
+    private BigDecimal odPd;
+    @Schema(description = "左眼球镜")
+    private BigDecimal osSph;
+    @Schema(description = "左眼柱镜")
+    private BigDecimal osCyl;
     @Schema(description = "左眼轴位")
     private Integer osAxis;
-
-    /**
-     * 左眼单眼瞳距
-     */
-    @Schema(description = "左眼单眼瞳距")
-    private Double osPd;
-
-    /**
-     * 双眼瞳距
-     */
+    @Schema(description = "左眼瞳距")
+    private BigDecimal osPd;
     @Schema(description = "双眼瞳距")
-    private Double pdTotal;
-
-    /**
-     * 下加光
-     */
+    private BigDecimal pdTotal;
     @Schema(description = "下加光")
-    private Double add;
-
-    /**
-     * 验光备注
-     */
-    @Schema(description = "验光备注")
-    private String notes;
-
-    /**
-     * 记录创建时间
-     */
-    @Schema(description = "记录创建时间")
-    private LocalDateTime createdAt;
-
-    /**
-     * 记录最后更新时间
-     */
-    @Schema(description = "记录最后更新时间")
-    private LocalDateTime updatedAt;
+    private BigDecimal addition;
+    @Schema(description = "带镜史数据")
+    private String wearingHistory;
+    @Schema(description = "是否有戴镜史")
+    private Integer hasGlassesHistory;
+    @Schema(description = "是否首次验光")
+    private Integer isFirstExam;
+    private Integer isDeleted;
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 }

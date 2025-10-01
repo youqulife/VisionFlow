@@ -21,8 +21,8 @@ CREATE TABLE saas_tenant
     expires_at          DATE COMMENT '订阅到期日期',
     max_users           INT                                          NOT NULL DEFAULT 5 COMMENT '最大用户数',
     is_active           TINYINT(1)                                   NOT NULL DEFAULT 1 COMMENT '是否激活',
-    created_at          TIMESTAMP                                    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at          TIMESTAMP                                    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    create_time          TIMESTAMP                                    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time          TIMESTAMP                                    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     INDEX idx_tenant_code (tenant_code),
     INDEX idx_subscription_status (subscription_status)
@@ -52,8 +52,8 @@ CREATE TABLE saas_tenant_user
     department    VARCHAR(50) COMMENT '部门',
     is_active     TINYINT(1)                                                                            NOT NULL DEFAULT 1 COMMENT '是否激活',
     last_login_at TIMESTAMP                                                                             NULL COMMENT '最后登录时间',
-    created_at    TIMESTAMP                                                                             NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at    TIMESTAMP                                                                             NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    create_time    TIMESTAMP                                                                             NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time    TIMESTAMP                                                                             NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     CONSTRAINT fk_tenant_user_tenant
         FOREIGN KEY (tenant_id) REFERENCES saas_tenant (id),
@@ -78,8 +78,8 @@ CREATE TABLE saas_tenant_role
     description VARCHAR(255) COMMENT '角色描述',
     is_system   TINYINT(1)  NOT NULL DEFAULT 0 COMMENT '是否系统角色',
     is_active   TINYINT(1)  NOT NULL DEFAULT 1 COMMENT '是否激活',
-    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    create_time  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
     CONSTRAINT fk_tenant_role_tenant
         FOREIGN KEY (tenant_id) REFERENCES saas_tenant (id),
@@ -128,7 +128,7 @@ CREATE TABLE saas_tenant_user_role
     tenant_id  BIGINT    NOT NULL COMMENT '所属租户ID',
     user_id    BIGINT    NOT NULL COMMENT '用户ID',
     role_id    BIGINT    NOT NULL COMMENT '角色ID',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 
     CONSTRAINT fk_tenant_user_role_tenant
         FOREIGN KEY (tenant_id) REFERENCES saas_tenant (id),
@@ -154,7 +154,7 @@ CREATE TABLE saas_tenant_role_menu
     tenant_id  BIGINT    NOT NULL COMMENT '所属租户ID',
     role_id    BIGINT    NOT NULL COMMENT '角色ID',
     menu_id    BIGINT    NOT NULL COMMENT '菜单ID',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 
     CONSTRAINT fk_tenant_role_menu_tenant
         FOREIGN KEY (tenant_id) REFERENCES saas_tenant (id),
@@ -179,7 +179,7 @@ CREATE TABLE saas_tenant_admin
     id         BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
     tenant_id  BIGINT    NOT NULL COMMENT '租户ID',
     sys_user_id    BIGINT    NOT NULL COMMENT '平台管理员用户ID（指向sys_user表）',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 
     CONSTRAINT fk_tenant_admin_tenant
         FOREIGN KEY (tenant_id) REFERENCES saas_tenant (id),

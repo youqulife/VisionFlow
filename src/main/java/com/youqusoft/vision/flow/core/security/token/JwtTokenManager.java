@@ -11,6 +11,7 @@ import cn.hutool.jwt.JWTUtil;
 import com.youqusoft.vision.flow.common.constant.JwtClaimConstants;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.common.constant.SecurityConstants;
+import com.youqusoft.vision.flow.common.constant.TenantConstants;
 import com.youqusoft.vision.flow.common.exception.BusinessException;
 import com.youqusoft.vision.flow.common.result.ResultCode;
 import com.youqusoft.vision.flow.config.property.SecurityProperties;
@@ -73,6 +74,7 @@ public class JwtTokenManager implements TokenManager {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(accessTokenTimeToLive)
+                .tenantId(TenantConstants.DEFAULT_TENANT_ID)
                 .build();
     }
 

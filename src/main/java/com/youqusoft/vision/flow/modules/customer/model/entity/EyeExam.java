@@ -1,103 +1,97 @@
 package com.youqusoft.vision.flow.modules.customer.model.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
-import com.youqusoft.vision.flow.common.base.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.youqusoft.vision.flow.common.base.BaseEntity;
 
 /**
- * 验光记录实体类
+ * 验光记录实体对象
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-10-01 11:31
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 @TableName("eye_exam")
 public class EyeExam extends BaseEntity {
 
-    /**
-     * 主键ID
-     */
-    @TableId(type = IdType.AUTO)
-    private Long id;
+    private static final long serialVersionUID = 1L;
 
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
     /**
      * 关联的顾客ID
      */
     private Long customerId;
-
     /**
      * 验光日期
      */
     private LocalDate examDate;
-
     /**
-     * 验光师姓名
+     * 验光师
      */
     private String optometrist;
-
     /**
-     * 右眼球镜度数
+     * 验光类型
      */
-    private Double odSph;
-
+    private String examType;
     /**
-     * 右眼柱镜度数
+     * 右眼球镜
      */
-    private Double odCyl;
-
+    private BigDecimal odSph;
+    /**
+     * 右眼柱镜
+     */
+    private BigDecimal odCyl;
     /**
      * 右眼轴位
      */
     private Integer odAxis;
-
     /**
-     * 右眼单眼瞳距
+     * 右眼瞳距
      */
-    private Double odPd;
-
+    private BigDecimal odPd;
     /**
-     * 左眼球镜度数
+     * 左眼球镜
      */
-    private Double osSph;
-
+    private BigDecimal osSph;
     /**
-     * 左眼柱镜度数
+     * 左眼柱镜
      */
-    private Double osCyl;
-
+    private BigDecimal osCyl;
     /**
      * 左眼轴位
      */
     private Integer osAxis;
-
     /**
-     * 左眼单眼瞳距
+     * 左眼瞳距
      */
-    private Double osPd;
-
+    private BigDecimal osPd;
     /**
      * 双眼瞳距
      */
-    private Double pdTotal;
-
+    private BigDecimal pdTotal;
     /**
      * 下加光
      */
-    @TableField("`add`")
-    private Double add;
-
+    private BigDecimal addition;
     /**
-     * 验光备注
+     * 带镜史数据
      */
-    private String notes;
-
+    private String wearingHistory;
     /**
-     * 软删除标记：0-未删除, 1-已删除
+     * 是否有戴镜史
      */
-    @TableLogic
+    private Integer hasGlassesHistory;
+    /**
+     * 是否首次验光
+     */
+    private Integer isFirstExam;
     private Integer isDeleted;
 }

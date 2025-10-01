@@ -1,71 +1,47 @@
 package com.youqusoft.vision.flow.modules.product.model.vo;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * 商品分类VO
+ * 商品分类视图对象
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-09-27 12:28
  */
-@Data
-@Schema(description = "商品分类")
-public class CategoryVO {
+@Getter
+@Setter
+@Schema( description = "商品分类视图对象")
+public class CategoryVO implements Serializable {
 
-    /**
-     * 主键ID
-     */
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Schema(description = "主键ID")
     private Long id;
-
-    /**
-     * 租户ID
-     */
-    @Schema(description = "租户ID")
-    private Long tenantId;
-
-    /**
-     * 分类名称
-     */
     @Schema(description = "分类名称")
     private String name;
-
-    /**
-     * 父级分类ID
-     */
-    @Schema(description = "父级分类ID")
+    @Schema(description = "父级分类ID：用于支持多级分类，NULL表示顶级分类")
     private Long parentId;
-
-    /**
-     * 排序号
-     */
-    @Schema(description = "排序号")
+    @Schema(description = "排序号：数字越小排序越前")
     private Integer sortOrder;
-
-    /**
-     * 分类描述
-     */
     @Schema(description = "分类描述")
     private String description;
-
-    /**
-     * 是否启用：0-禁用, 1-启用
-     */
-    @Schema(description = "是否启用")
+    @Schema(description = "是否启用：0-禁用, 1-启用")
     private Integer isActive;
-
-    /**
-     * 记录创建时间
-     */
+    @Schema(description = "软删除标记：0-未删除, 1-已删除")
+    private Integer isDeleted;
     @Schema(description = "记录创建时间")
-    private LocalDateTime createdAt;
-
-    /**
-     * 记录最后更新时间
-     */
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    private LocalDateTime createTime;
     @Schema(description = "记录最后更新时间")
-    private LocalDateTime updatedAt;
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+    private LocalDateTime updateTime;
 }

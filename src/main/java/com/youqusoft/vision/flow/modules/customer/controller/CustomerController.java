@@ -1,75 +1,79 @@
 package com.youqusoft.vision.flow.modules.customer.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.youqusoft.vision.flow.common.result.PageResult;
-import com.youqusoft.vision.flow.common.result.Result;
+import com.youqusoft.vision.flow.modules.customer.service.CustomerService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import com.youqusoft.vision.flow.modules.customer.model.form.CustomerForm;
 import com.youqusoft.vision.flow.modules.customer.model.query.CustomerQuery;
 import com.youqusoft.vision.flow.modules.customer.model.vo.CustomerVO;
-import com.youqusoft.vision.flow.modules.customer.service.CustomerService;
-import io.swagger.v3.oas.annotations.Operation;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.youqusoft.vision.flow.common.result.PageResult;
+import com.youqusoft.vision.flow.common.result.Result;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
 
 /**
- * 顾客信息控制层
+ * 顾客信息前端控制层
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-09-27 15:49
  */
-@Tag(name = "顾客管理")
+@Tag(name = "顾客信息接口")
 @RestController
-@RequestMapping("/api/v1/customers")
+@RequestMapping("/api/v1/customer")
 @RequiredArgsConstructor
-public class CustomerController {
+public class CustomerController  {
 
     private final CustomerService customerService;
 
-    @Operation(summary = "顾客分页列表")
-    @GetMapping
-    public PageResult<CustomerVO> getCustomerPage(
-            @Parameter(description = "顾客查询参数") CustomerQuery queryParams
-    ) {
-        IPage<CustomerVO> page = customerService.getCustomerPage(queryParams);
-        return PageResult.success(page);
+    @Operation(summary = "顾客信息分页列表")
+    @GetMapping("/page")
+    @PreAuthorize("@ss.hasPerm('customer:customer:query')")
+    public PageResult<CustomerVO> getCustomerPage(CustomerQuery queryParams ) {
+        IPage<CustomerVO> result = customerService.getCustomerPage(queryParams);
+        return PageResult.success(result);
     }
 
-    @Operation(summary = "保存顾客信息")
+    @Operation(summary = "新增顾客信息")
     @PostMapping
-    public Result<Boolean> saveCustomer(
-            @RequestBody @Valid CustomerForm customerForm
-    ) {
-        boolean result = customerService.saveCustomer(customerForm);
+    @PreAuthorize("@ss.hasPerm('customer:customer:add')")
+    public Result<Void> saveCustomer(@RequestBody @Valid CustomerForm formData ) {
+        boolean result = customerService.saveCustomer(formData);
         return Result.judge(result);
     }
 
-    @Operation(summary = "获取顾客表单数据")
-    @GetMapping("/{id}")
+    @Operation(summary = "获取顾客信息表单数据")
+    @GetMapping("/{id}/form")
+    @PreAuthorize("@ss.hasPerm('customer:customer:edit')")
     public Result<CustomerForm> getCustomerForm(
-            @Parameter(description = "顾客ID") @PathVariable Long id
+        @Parameter(description = "顾客信息ID") @PathVariable Long id
     ) {
-        CustomerForm customerForm = customerService.getCustomerForm(id);
-        return Result.success(customerForm);
+        CustomerForm formData = customerService.getCustomerFormData(id);
+        return Result.success(formData);
     }
 
-    @Operation(summary = "更新顾客信息")
-    @PutMapping("/{id}")
-    public Result<Boolean> updateCustomer(
-            @Parameter(description = "顾客ID") @PathVariable Long id,
-            @RequestBody @Valid CustomerForm customerForm
+    @Operation(summary = "修改顾客信息")
+    @PutMapping(value = "/{id}")
+    @PreAuthorize("@ss.hasPerm('customer:customer:edit')")
+    public Result<Void> updateCustomer(
+            @Parameter(description = "顾客信息ID") @PathVariable Long id,
+            @RequestBody @Validated CustomerForm formData
     ) {
-        boolean result = customerService.updateCustomer(id, customerForm);
+        boolean result = customerService.updateCustomer(id, formData);
         return Result.judge(result);
     }
 
     @Operation(summary = "删除顾客信息")
     @DeleteMapping("/{ids}")
-    public Result<Boolean> deleteCustomers(
-            @Parameter(description = "顾客ID数组") @PathVariable Long[] ids
+    @PreAuthorize("@ss.hasPerm('customer:customer:delete')")
+    public Result<Void> deleteCustomers(
+        @Parameter(description = "顾客信息ID，多个以英文逗号(,)分割") @PathVariable String ids
     ) {
         boolean result = customerService.deleteCustomers(ids);
         return Result.judge(result);

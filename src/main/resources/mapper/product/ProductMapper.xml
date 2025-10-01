@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqusoft.vision.flow.modules.product.mapper.ProductMapper">
+
+    <!-- 获取商品信息分页列表 -->
+    <select id="getProductPage" resultType="com.youqusoft.vision.flow.modules.product.model.vo.ProductVO">
+        SELECT
+            id,
+            tenant_id,
+            name,
+            sku,
+            category_id,
+            brand,
+            model,
+            refractive_index,
+            lens_function,
+            purchase_price,
+            sale_price,
+            stock_quantity,
+            min_stock_alert,
+            is_active,
+            is_deleted,
+            create_time,
+            update_time
+        FROM
+            products
+        <where>
+            is_deleted = 0
+        </where>
+    </select>
+
+</mapper>

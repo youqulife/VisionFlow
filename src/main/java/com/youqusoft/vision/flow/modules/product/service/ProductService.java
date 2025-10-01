@@ -8,51 +8,51 @@ import com.youqusoft.vision.flow.modules.product.model.query.ProductQuery;
 import com.youqusoft.vision.flow.modules.product.model.vo.ProductVO;
 
 /**
- * 商品信息服务接口层
+ * 商品信息服务类
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-09-27 11:57
  */
 public interface ProductService extends IService<Product> {
 
     /**
-     * 商品分页列表
+     *商品信息分页列表
      *
-     * @param queryParams 商品查询参数
-     * @return 商品分页列表
+     * @return {@link IPage<ProductVO>} 商品信息分页列表
      */
     IPage<ProductVO> getProductPage(ProductQuery queryParams);
 
     /**
-     * 保存商品信息
+     * 获取商品信息表单数据
      *
-     * @param productForm 商品表单数据
-     * @return 是否保存成功
+     * @param id 商品信息ID
+     * @return 商品信息表单数据
      */
-    boolean saveProduct(ProductForm productForm);
+     ProductForm getProductFormData(Long id);
 
     /**
-     * 获取商品表单数据
+     * 新增商品信息
      *
-     * @param id 商品ID
-     * @return 商品表单数据
+     * @param formData 商品信息表单对象
+     * @return 是否新增成功
      */
-    ProductForm getProductForm(Long id);
+    boolean saveProduct(ProductForm formData);
 
     /**
-     * 更新商品信息
+     * 修改商品信息
      *
-     * @param id 商品ID
-     * @param productForm 商品表单数据
-     * @return 是否更新成功
+     * @param id   商品信息ID
+     * @param formData 商品信息表单对象
+     * @return 是否修改成功
      */
-    boolean updateProduct(Long id, ProductForm productForm);
+    boolean updateProduct(Long id, ProductForm formData);
 
     /**
      * 删除商品信息
      *
-     * @param ids 商品ID数组
+     * @param ids 商品信息ID，多个以英文逗号(,)分割
      * @return 是否删除成功
      */
-    boolean deleteProducts(Long[] ids);
+    boolean deleteProducts(String ids);
+
 }

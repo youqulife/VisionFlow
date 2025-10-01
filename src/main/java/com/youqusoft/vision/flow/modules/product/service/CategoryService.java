@@ -1,34 +1,26 @@
 package com.youqusoft.vision.flow.modules.product.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.youqusoft.vision.flow.modules.product.model.entity.Category;
 import com.youqusoft.vision.flow.modules.product.model.form.CategoryForm;
+import com.youqusoft.vision.flow.modules.product.model.query.CategoryQuery;
 import com.youqusoft.vision.flow.modules.product.model.vo.CategoryVO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
- * 商品分类服务接口层
+ * 商品分类服务类
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-09-27 12:28
  */
 public interface CategoryService extends IService<Category> {
 
     /**
-     * 商品分类分页列表
+     *商品分类分页列表
      *
-     * @param queryParams 商品分类查询参数
-     * @return 商品分类分页列表
+     * @return {@link IPage<CategoryVO>} 商品分类分页列表
      */
-    IPage<CategoryVO> getCategoryPage(CategoryForm queryParams);
-
-    /**
-     * 保存商品分类
-     *
-     * @param categoryForm 商品分类表单数据
-     * @return 是否保存成功
-     */
-    boolean saveCategory(CategoryForm categoryForm);
+    IPage<CategoryVO> getCategoryPage(CategoryQuery queryParams);
 
     /**
      * 获取商品分类表单数据
@@ -36,22 +28,31 @@ public interface CategoryService extends IService<Category> {
      * @param id 商品分类ID
      * @return 商品分类表单数据
      */
-    CategoryForm getCategoryForm(Long id);
+     CategoryForm getCategoryFormData(Long id);
 
     /**
-     * 更新商品分类
+     * 新增商品分类
      *
-     * @param id 商品分类ID
-     * @param categoryForm 商品分类表单数据
-     * @return 是否更新成功
+     * @param formData 商品分类表单对象
+     * @return 是否新增成功
      */
-    boolean updateCategory(Long id, CategoryForm categoryForm);
+    boolean saveCategory(CategoryForm formData);
+
+    /**
+     * 修改商品分类
+     *
+     * @param id   商品分类ID
+     * @param formData 商品分类表单对象
+     * @return 是否修改成功
+     */
+    boolean updateCategory(Long id, CategoryForm formData);
 
     /**
      * 删除商品分类
      *
-     * @param ids 商品分类ID数组
+     * @param ids 商品分类ID，多个以英文逗号(,)分割
      * @return 是否删除成功
      */
-    boolean deleteCategories(Long[] ids);
+    boolean deleteCategorys(String ids);
+
 }

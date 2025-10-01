@@ -1,57 +1,103 @@
 package com.youqusoft.vision.flow.modules.product.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.youqusoft.vision.flow.modules.product.mapper.ProductMapper;
+import com.youqusoft.vision.flow.modules.product.service.ProductService;
 import com.youqusoft.vision.flow.modules.product.model.entity.Product;
 import com.youqusoft.vision.flow.modules.product.model.form.ProductForm;
 import com.youqusoft.vision.flow.modules.product.model.query.ProductQuery;
 import com.youqusoft.vision.flow.modules.product.model.vo.ProductVO;
-import com.youqusoft.vision.flow.modules.product.service.ProductService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.youqusoft.vision.flow.modules.product.converter.ProductConverter;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 
 /**
  * 商品信息服务实现类
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-09-27 11:59
  */
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> implements ProductService {
 
-    private final ProductMapper productMapper;
+    private final ProductConverter productConverter;
 
+    /**
+    * 获取商品信息分页列表
+    *
+    * @param queryParams 查询参数
+    * @return {@link IPage<ProductVO>} 商品信息分页列表
+    */
     @Override
     public IPage<ProductVO> getProductPage(ProductQuery queryParams) {
-        // TODO: 实现分页查询逻辑
-        return new Page<>();
+        Page<ProductVO> pageVO = this.baseMapper.getProductPage(
+                new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
+                queryParams
+        );
+        return pageVO;
+    }
+    
+    /**
+     * 获取商品信息表单数据
+     *
+     * @param id 商品信息ID
+     * @return 商品信息表单数据
+     */
+    @Override
+    public ProductForm getProductFormData(Long id) {
+        Product entity = this.getById(id);
+        return productConverter.toForm(entity);
+    }
+    
+    /**
+     * 新增商品信息
+     *
+     * @param formData 商品信息表单对象
+     * @return 是否新增成功
+     */
+    @Override
+    public boolean saveProduct(ProductForm formData) {
+        Product entity = productConverter.toEntity(formData);
+        return this.save(entity);
+    }
+    
+    /**
+     * 更新商品信息
+     *
+     * @param id   商品信息ID
+     * @param formData 商品信息表单对象
+     * @return 是否修改成功
+     */
+    @Override
+    public boolean updateProduct(Long id,ProductForm formData) {
+        Product entity = productConverter.toEntity(formData);
+        return this.updateById(entity);
+    }
+    
+    /**
+     * 删除商品信息
+     *
+     * @param ids 商品信息ID，多个以英文逗号(,)分割
+     * @return 是否删除成功
+     */
+    @Override
+    public boolean deleteProducts(String ids) {
+        Assert.isTrue(StrUtil.isNotBlank(ids), "删除的商品信息数据为空");
+        // 逻辑删除
+        List<Long> idList = Arrays.stream(ids.split(","))
+                .map(Long::parseLong)
+                .toList();
+        return this.removeByIds(idList);
     }
 
-    @Override
-    public boolean saveProduct(ProductForm productForm) {
-        // TODO: 实现保存逻辑
-        return true;
-    }
-
-    @Override
-    public ProductForm getProductForm(Long id) {
-        // TODO: 实现获取表单数据逻辑
-        return new ProductForm();
-    }
-
-    @Override
-    public boolean updateProduct(Long id, ProductForm productForm) {
-        // TODO: 实现更新逻辑
-        return true;
-    }
-
-    @Override
-    public boolean deleteProducts(Long[] ids) {
-        // TODO: 实现删除逻辑
-        return true;
-    }
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqusoft.vision.flow.modules.customer.mapper.EyeExamMapper">
+
+    <!-- 获取验光记录分页列表 -->
+    <select id="getEyeExamPage" resultType="com.youqusoft.vision.flow.modules.customer.model.vo.EyeExamVO">
+        SELECT
+                id,
+                tenant_id,
+                customer_id,
+                exam_date,
+                optometrist,
+                exam_type,
+                od_sph,
+                od_cyl,
+                od_axis,
+                od_pd,
+                os_sph,
+                os_cyl,
+                os_axis,
+                os_pd,
+                pd_total,
+                addition,
+                wearing_history,
+                has_glasses_history,
+                is_first_exam,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            eye_exam
+        <where>
+        </where>
+    </select>
+
+</mapper>

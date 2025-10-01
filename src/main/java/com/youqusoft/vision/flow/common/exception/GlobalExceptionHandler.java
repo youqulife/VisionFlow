@@ -270,7 +270,7 @@ public class GlobalExceptionHandler {
         if (matcher.find()) {
             String matchString = matcher.group();
             matchString = matchString.replace("[", "").replace("]", "");
-            matchString = "%s字段类型错误".formatted(matchString.replaceAll("\"", ""));
+            matchString = "%supdate_time".formatted(matchString.replaceAll("\"", ""));
             group += matchString;
         }
         return group;

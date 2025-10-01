@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqusoft.vision.flow.modules.customer.mapper.CustomerMapper">
+
+    <!-- 获取顾客信息分页列表 -->
+    <select id="getCustomerPage" resultType="com.youqusoft.vision.flow.modules.customer.model.vo.CustomerVO">
+        SELECT
+                id,
+                name,
+                phone,
+                gender,
+                birthday,
+                source,
+                tags,
+                member_level,
+                balance,
+                notes,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            customer
+        <where>
+        </where>
+    </select>
+
+</mapper>

@@ -38,7 +38,7 @@ public class Order extends BaseEntity {
     private Long customerId;
 
     /**
-     * 关联的验光记录ID
+     * 关联的验光记录ID（可空）
      */
     private Long eyeExamId;
 
@@ -77,4 +77,22 @@ public class Order extends BaseEntity {
      */
     @TableLogic
     private Integer isDeleted;
+
+    private OrderType orderType;
+
+    /**
+     * 判断是否需要验光数据
+     */
+    public boolean requiresEyeExam() {
+        return orderType == OrderType.OPTICAL || orderType == OrderType.PROGRESSIVE;
+    }
+
+    public enum OrderType {
+        OPTICAL,        // 光学眼镜（需要验光）
+        SUNGLASSES,     // 太阳镜（不需要验光）
+        CONTACT_LENS,   // 隐形眼镜（可能需要验光）
+        ACCESSORIES,    // 配件（不需要验光）
+        SERVICE,        // 维修服务（不需要验光）
+        PROGRESSIVE     // 渐进镜片（需要验光）
+    }
 }

@@ -27,4 +27,7 @@ public class AuthenticationToken {
     @Schema(description = "过期时间(单位：秒)")
     private Integer expiresIn;
 
+    @Schema(description = "租户ID")
+    private Long tenantId;
+
 }

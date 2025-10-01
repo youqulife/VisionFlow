@@ -85,11 +85,11 @@ public class OrderVO {
      * 订单创建时间
      */
     @Schema(description = "订单创建时间")
-    private LocalDateTime createdAt;
+    private LocalDateTime createTime;
 
     /**
      * 订单最后更新时间
      */
     @Schema(description = "订单最后更新时间")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updateTime;
 }

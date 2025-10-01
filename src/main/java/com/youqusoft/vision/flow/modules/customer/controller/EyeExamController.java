@@ -1,75 +1,79 @@
 package com.youqusoft.vision.flow.modules.customer.controller;
 
+import com.youqusoft.vision.flow.modules.customer.service.EyeExamService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.youqusoft.vision.flow.modules.customer.model.form.EyeExamForm;
+import com.youqusoft.vision.flow.modules.customer.model.query.EyeExamQuery;
+import com.youqusoft.vision.flow.modules.customer.model.vo.EyeExamVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.youqusoft.vision.flow.common.result.PageResult;
 import com.youqusoft.vision.flow.common.result.Result;
-import com.youqusoft.vision.flow.modules.customer.model.form.EyeExamForm;
-import com.youqusoft.vision.flow.modules.customer.model.query.CustomerQuery;
-import com.youqusoft.vision.flow.modules.customer.model.vo.EyeExamVO;
-import com.youqusoft.vision.flow.modules.customer.service.EyeExamService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
 
 /**
- * 验光记录控制层
+ * 验光记录前端控制层
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-10-01 11:31
  */
-@Tag(name = "验光记录管理")
+@Tag(name = "验光记录接口")
 @RestController
-@RequestMapping("/api/v1/eye-exams")
+@RequestMapping("/api/v1/eye-exam")
 @RequiredArgsConstructor
-public class EyeExamController {
+public class EyeExamController  {
 
     private final EyeExamService eyeExamService;
 
     @Operation(summary = "验光记录分页列表")
-    @GetMapping
-    public PageResult<EyeExamVO> getEyeExamPage(
-            @Parameter(description = "验光记录查询参数") CustomerQuery queryParams
-    ) {
-        IPage<EyeExamVO> page = eyeExamService.getEyeExamPage(queryParams);
-        return PageResult.success(page);
+    @GetMapping("/page")
+    @PreAuthorize("@ss.hasPerm('customer:eye-exam:query')")
+    public PageResult<EyeExamVO> getEyeExamPage(EyeExamQuery queryParams ) {
+        IPage<EyeExamVO> result = eyeExamService.getEyeExamPage(queryParams);
+        return PageResult.success(result);
     }
 
-    @Operation(summary = "保存验光记录")
+    @Operation(summary = "新增验光记录")
     @PostMapping
-    public Result<Boolean> saveEyeExam(
-            @RequestBody @Valid EyeExamForm eyeExamForm
-    ) {
-        boolean result = eyeExamService.saveEyeExam(eyeExamForm);
+    @PreAuthorize("@ss.hasPerm('customer:eye-exam:add')")
+    public Result<Void> saveEyeExam(@RequestBody @Valid EyeExamForm formData ) {
+        boolean result = eyeExamService.saveEyeExam(formData);
         return Result.judge(result);
     }
 
     @Operation(summary = "获取验光记录表单数据")
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/form")
+    @PreAuthorize("@ss.hasPerm('customer:eye-exam:edit')")
     public Result<EyeExamForm> getEyeExamForm(
-            @Parameter(description = "验光记录ID") @PathVariable Long id
+        @Parameter(description = "验光记录ID") @PathVariable Long id
     ) {
-        EyeExamForm eyeExamForm = eyeExamService.getEyeExamForm(id);
-        return Result.success(eyeExamForm);
+        EyeExamForm formData = eyeExamService.getEyeExamFormData(id);
+        return Result.success(formData);
     }
 
-    @Operation(summary = "更新验光记录")
-    @PutMapping("/{id}")
-    public Result<Boolean> updateEyeExam(
+    @Operation(summary = "修改验光记录")
+    @PutMapping(value = "/{id}")
+    @PreAuthorize("@ss.hasPerm('customer:eye-exam:edit')")
+    public Result<Void> updateEyeExam(
             @Parameter(description = "验光记录ID") @PathVariable Long id,
-            @RequestBody @Valid EyeExamForm eyeExamForm
+            @RequestBody @Validated EyeExamForm formData
     ) {
-        boolean result = eyeExamService.updateEyeExam(id, eyeExamForm);
+        boolean result = eyeExamService.updateEyeExam(id, formData);
         return Result.judge(result);
     }
 
     @Operation(summary = "删除验光记录")
     @DeleteMapping("/{ids}")
-    public Result<Boolean> deleteEyeExams(
-            @Parameter(description = "验光记录ID数组") @PathVariable Long[] ids
+    @PreAuthorize("@ss.hasPerm('customer:eye-exam:delete')")
+    public Result<Void> deleteEyeExams(
+        @Parameter(description = "验光记录ID，多个以英文逗号(,)分割") @PathVariable String ids
     ) {
         boolean result = eyeExamService.deleteEyeExams(ids);
         return Result.judge(result);
