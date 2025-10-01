@@ -5,31 +5,47 @@
     <!-- 获取验光记录分页列表 -->
     <select id="getEyeExamPage" resultType="com.youqusoft.vision.flow.modules.customer.model.vo.EyeExamVO">
         SELECT
-                id,
-                tenant_id,
-                customer_id,
-                exam_date,
-                optometrist,
-                exam_type,
-                od_sph,
-                od_cyl,
-                od_axis,
-                od_pd,
-                os_sph,
-                os_cyl,
-                os_axis,
-                os_pd,
-                pd_total,
-                addition,
-                wearing_history,
-                has_glasses_history,
-                is_first_exam,
-                is_deleted,
-                create_time,
-                update_time
+        ee.id,
+        ee.tenant_id,
+        customer_id,
+        c.name as customer_name,
+        c.phone as customer_phone,
+        exam_date,
+        optometrist,
+        exam_type,
+        od_sph,
+        od_cyl,
+        od_axis,
+        od_pd,
+        os_sph,
+        os_cyl,
+        os_axis,
+        os_pd,
+        pd_total,
+        addition,
+        wearing_history,
+        has_glasses_history,
+        is_first_exam,
+        ee.is_deleted,
+        ee.create_time,
+        ee.update_time
         FROM
-            eye_exam
+        eye_exam ee
+        left join customer c on ee.customer_id = c.id
         <where>
+            ee.is_deleted = 0
+        <if test="queryParams.customerName != null and queryParams.customerName != ''">
+            and c.name like concat('%', #{queryParams.customerName}, '%')
+        </if>
+        <if test="queryParams.customerPhone != null and queryParams.customerPhone != ''">
+            and c.phone like concat('%', #{queryParams.customerPhone}, '%')
+        </if>
+        <if test="queryParams.examDateBegin != null and queryParams.examDateBegin != ''">
+            and ee.exam_date >= #{queryParams.examDateBegin}
+        </if>
+        <if test="queryParams.examDateEnd != null and queryParams.examDateEnd != ''">
+            AND ee.exam_date &lt;= #{queryParams.examDateEnd}
+        </if>
         </where>
     </select>
 

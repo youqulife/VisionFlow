@@ -89,6 +89,7 @@ public class EyeExamServiceImpl extends ServiceImpl<EyeExamMapper, EyeExam> impl
     @Override
     public boolean updateEyeExam(Long id,EyeExamForm formData) {
         EyeExam entity = eyeExamConverter.toEntity(formData);
+        entity.setId(id);
         return this.updateById(entity);
     }
     

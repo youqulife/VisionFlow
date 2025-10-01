@@ -15,5 +15,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EyeExamQuery extends BasePageQuery {
-
+    private String customerName;
+    private String customerPhone;
+    private String examDateBegin;
+    private String examDateEnd;
 }

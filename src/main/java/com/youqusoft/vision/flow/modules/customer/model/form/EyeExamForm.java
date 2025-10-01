@@ -2,6 +2,8 @@ package com.youqusoft.vision.flow.modules.customer.model.form;
 
 import java.io.Serial;
 import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +21,7 @@ import jakarta.validation.constraints.*;
 @Getter
 @Setter
 @Schema(description = "验光记录表单对象")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EyeExamForm implements Serializable {
 
     @Serial
@@ -76,14 +79,13 @@ public class EyeExamForm implements Serializable {
     @Schema(description = "下加光")
     private BigDecimal addition;
 
-    @Schema(description = "带镜史数据")
-    private String wearingHistory;
-
     @Schema(description = "是否有戴镜史")
     private Integer hasGlassesHistory;
 
     @Schema(description = "是否首次验光")
     private Integer isFirstExam;
 
+    @Schema(description = "带镜史数据对象")
+    private WearingHistoryData wearingHistoryObj;
 
 }

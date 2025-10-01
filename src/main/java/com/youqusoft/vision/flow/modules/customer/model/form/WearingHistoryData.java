@@ -3,6 +3,8 @@ package com.youqusoft.vision.flow.modules.customer.model.form;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
 /**
@@ -13,9 +15,19 @@ import lombok.Data;
  * @since 2025-10-01
  */
 @Data
-public class HistoryData implements Serializable {
+public class WearingHistoryData implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 版本号
+     */
+    private Integer version;
+
+    /**
+     * 是否当前佩戴记录
+     */
+    private Boolean isCurrent;
 
     /**
      * 基本信息
@@ -41,6 +53,45 @@ public class HistoryData implements Serializable {
      * 特殊需求
      */
     private SpecialNeeds specialNeeds;
+
+    /**
+     * 变更信息
+     */
+    private ChangeInfo changeInfo;
+
+    /**
+     * 将对象转换为JSON字符串
+     * 
+     * @return JSON字符串表示
+     */
+    public String toJsonString() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            // 发生异常时返回null
+            return null;
+        }
+    }
+
+    /**
+     * 从JSON字符串创建对象
+     *
+     * @param jsonString JSON字符串
+     * @return WearingHistoryData对象
+     */
+    public static WearingHistoryData fromJsonString(String jsonString) {
+        if (jsonString == null || jsonString.isEmpty()) {
+            return null;
+        }
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(jsonString, WearingHistoryData.class);
+        } catch (Exception e) {
+            // 解析失败时返回null
+            return null;
+        }
+    }
 
     /**
      * 基本信息
@@ -200,5 +251,24 @@ public class HistoryData implements Serializable {
          *         sports-运动防护, fashion-时尚外观, lightweight-轻便, none-无特殊要求
          */
         private String specialRequirements;
+    }
+
+    /**
+     * 变更信息
+     */
+    @Data
+    public static class ChangeInfo implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * 变更原因：routine_check-常规检查, vision_problems-视力问题, 
+         *         lens_wear-镜片磨损, frame_issues-镜架问题, lifestyle_changes-生活方式改变
+         */
+        private String changeReason;
+
+        /**
+         * 变更类型：new-新配镜, update-更新, replacement-更换
+         */
+        private String changeType;
     }
 }
