@@ -2,6 +2,7 @@ package com.youqusoft.vision.flow.core.filter;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
+import com.youqusoft.vision.flow.common.cache.UnifiedCacheManager;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.common.constant.SystemConstants;
 import com.youqusoft.vision.flow.common.result.ResultCode;
@@ -29,14 +30,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RateLimiterFilter extends OncePerRequestFilter {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private final ConfigService configService;
+    private final UnifiedCacheManager unifiedCacheManager;
 
     private static final long DEFAULT_IP_LIMIT = 10L; // 默认 IP 限流阈值
 
-    public RateLimiterFilter(RedisTemplate<String, Object> redisTemplate, ConfigService configService) {
-        this.redisTemplate = redisTemplate;
+    public RateLimiterFilter(UnifiedCacheManager unifiedCacheManager,ConfigService configService) {
         this.configService = configService;
+        this.unifiedCacheManager = unifiedCacheManager;
     }
 
     /**
@@ -51,12 +52,10 @@ public class RateLimiterFilter extends OncePerRequestFilter {
         // 限流 Redis 键
         String key = StrUtil.format(RedisConstants.RateLimiter.IP, ip);
 
-        // 自增请求计数
-        Long count = redisTemplate.opsForValue().increment(key);
-        if (count == null || count == 1) {
-            // 第一次访问时设置过期时间为 1 秒
-            redisTemplate.expire(key, 1, TimeUnit.SECONDS);
-        }
+        // 使用UnifiedCacheManager自增请求计数
+        Long count = unifiedCacheManager.get("rate_limiter", key, () -> 0L);
+        count++;
+        unifiedCacheManager.putWithExpire("rate_limiter", key, count, 1, TimeUnit.SECONDS);
 
         // 获取系统配置的限流阈值
         Object systemConfig = configService.getSystemConfig(SystemConstants.SYSTEM_CONFIG_IP_QPS_LIMIT_KEY);
@@ -68,7 +67,7 @@ public class RateLimiterFilter extends OncePerRequestFilter {
 
         // 转换系统配置为限流值，默认为 10
         long limit = Convert.toLong(systemConfig, DEFAULT_IP_LIMIT);
-        return count != null && count > limit;
+        return count > limit;
     }
 
     /**

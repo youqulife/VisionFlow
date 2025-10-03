@@ -32,16 +32,16 @@ spring:
           # 连接池中的最小空闲连接 默认0
           min-idle: 0
   cache:
-    enabled: false
-    # 缓存类型 redis、none(不使用缓存)
-    type: redis
+    enabled: true
+    # 缓存类型 redis、caffeine
+    type: caffeine
     # 缓存时间(单位：ms)
     redis:
       time-to-live: 3600000
       # 缓存null值，防止缓存穿透
       cache-null-values: true
     caffeine:
-      spec: initialCapacity=50,maximumSize=1000,expireAfterWrite=600s
+      spec: initialCapacity=50,maximumSize=1000,expireAfterWrite=1200s
   # 邮件配置
   mail:
     host: smtp.youlai.tech

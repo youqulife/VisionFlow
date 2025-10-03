@@ -10,6 +10,7 @@ import com.youqusoft.vision.flow.auth.model.CaptchaInfo;
 import com.youqusoft.vision.flow.auth.model.dto.WxMiniAppCodeLoginDTO;
 import com.youqusoft.vision.flow.auth.model.dto.WxMiniAppPhoneLoginDTO;
 import com.youqusoft.vision.flow.auth.service.AuthService;
+import com.youqusoft.vision.flow.common.cache.UnifiedCacheManager;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.common.constant.SecurityConstants;
 import com.youqusoft.vision.flow.config.property.CaptchaProperties;
@@ -23,7 +24,6 @@ import com.youqusoft.vision.flow.shared.sms.enums.SmsTypeEnum;
 import com.youqusoft.vision.flow.shared.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
     private final CodeGenerator codeGenerator;
 
     private final SmsService smsService;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final UnifiedCacheManager cacheManager;
 
     /**
      * 用户名密码登录
@@ -122,7 +122,16 @@ public class AuthServiceImpl implements AuthService {
             log.error("发送短信验证码失败", e);
         }
         // 缓存验证码至Redis，用于登录校验
-        redisTemplate.opsForValue().set(StrUtil.format(RedisConstants.Captcha.SMS_LOGIN_CODE, mobile), code, 5, TimeUnit.MINUTES);
+//        redisTemplate.opsForValue().set(
+//                StrUtil.format(RedisConstants.Captcha.SMS_LOGIN_CODE, mobile),
+//                code,
+//                5,
+//                TimeUnit.MINUTES);
+        cacheManager.putWithExpire(RedisConstants.Captcha.SMS_LOGIN_CODE,
+                StrUtil.format(RedisConstants.Captcha.SMS_LOGIN_CODE, mobile),
+                code,
+                5,
+                TimeUnit.MINUTES);
     }
 
     /**
@@ -197,12 +206,17 @@ public class AuthServiceImpl implements AuthService {
 
         // 验证码文本缓存至Redis，用于登录校验
         String captchaKey = IdUtil.fastSimpleUUID();
-        redisTemplate.opsForValue().set(
+//        redisTemplate.opsForValue().set(
+//                StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, captchaKey),
+//                captchaCode,
+//                captchaProperties.getExpireSeconds(),
+//                TimeUnit.SECONDS
+//        );
+        cacheManager.putWithExpire(RedisConstants.Captcha.IMAGE_CODE,
                 StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, captchaKey),
                 captchaCode,
                 captchaProperties.getExpireSeconds(),
-                TimeUnit.SECONDS
-        );
+                TimeUnit.SECONDS);
 
         return CaptchaInfo.builder()
                 .captchaKey(captchaKey)

@@ -2,10 +2,12 @@ package com.youqusoft.vision.flow.core.security.service;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.youqusoft.vision.flow.common.cache.UnifiedCacheManager;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.core.security.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.Lists;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.PatternMatchUtils;
@@ -23,7 +25,7 @@ import java.util.*;
 @Slf4j
 public class PermissionService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final UnifiedCacheManager cacheManager;
 
     /**
      * 判断当前登录用户是否拥有操作权限
@@ -32,7 +34,6 @@ public class PermissionService {
      * @return 是否有权限
      */
     public boolean hasPerm(String requiredPerm) {
-
         if (StrUtil.isBlank(requiredPerm)) {
             return false;
         }
@@ -81,7 +82,13 @@ public class PermissionService {
         Set<String> perms = new HashSet<>();
         // 从缓存中一次性获取所有角色的权限
         Collection<Object> roleCodesAsObjects = new ArrayList<>(roleCodes);
-        List<Object> rolePermsList = redisTemplate.opsForHash().multiGet(RedisConstants.System.ROLE_PERMS, roleCodesAsObjects);
+        List<Object> rolePermsList = Lists.newArrayList();
+        for (Object roleCode : roleCodesAsObjects){
+            perms = cacheManager.get(RedisConstants.System.ROLE_PERMS, roleCode);
+            if (perms != null) {
+                rolePermsList.add(perms);
+            }
+        }
 
         for (Object rolePermsObj : rolePermsList) {
             if (rolePermsObj instanceof Set) {

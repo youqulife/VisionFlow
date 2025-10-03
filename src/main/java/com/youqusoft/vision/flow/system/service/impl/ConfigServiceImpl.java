@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.youqusoft.vision.flow.common.cache.UnifiedCacheManager;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.system.converter.ConfigConverter;
 import com.youqusoft.vision.flow.system.mapper.ConfigMapper;
@@ -37,7 +38,8 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
 
     private final ConfigConverter configConverter;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+//    private final RedisTemplate<String, Object> redisTemplate;
+    private final UnifiedCacheManager cacheManager;
 
     /**
      * 系统启动完成后，加载系统配置到缓存
@@ -138,11 +140,11 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
      */
     @Override
     public boolean refreshCache() {
-        redisTemplate.delete(RedisConstants.System.CONFIG);
+        cacheManager.clear(RedisConstants.System.CONFIG);
         List<Config> list = this.list();
         if (list != null) {
             Map<String, String> map = list.stream().collect(Collectors.toMap(Config::getConfigKey, Config::getConfigValue));
-            redisTemplate.opsForHash().putAll(RedisConstants.System.CONFIG, map);
+            map.forEach((k, v) -> cacheManager.put(RedisConstants.System.CONFIG, k, v));
             return true;
         }
         return false;
@@ -157,7 +159,8 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
     @Override
     public Object getSystemConfig(String key) {
         if (StringUtils.isNotBlank(key)) {
-            return redisTemplate.opsForHash().get(RedisConstants.System.CONFIG, key);
+//            return redisTemplate.opsForHash().get(RedisConstants.System.CONFIG, key);
+            return cacheManager.get(RedisConstants.System.CONFIG, key);
         }
         return null;
     }

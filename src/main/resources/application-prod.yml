@@ -5,9 +5,9 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://www.youlai.tech:3306/youlai_boot?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true&allowMultiQueries=true
-    username: youlai
-    password: 123456
+    url: jdbc:mysql://rm-wz93fqzael6icd8oz2o.mysql.rds.aliyuncs.com:3306/visionflow?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true&allowMultiQueries=true
+    username: youqusoft_visionflow
+    password: visionflow@202510
   data:
     redis:
       database: 11
@@ -28,7 +28,7 @@ spring:
   cache:
     enabled: false
     # 缓存类型 redis、none(不使用缓存)
-    type: redis
+    type: none
     # 缓存时间(单位：ms)
     redis:
       time-to-live: 3600000

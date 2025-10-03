@@ -3,6 +3,7 @@ package com.youqusoft.vision.flow.config;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.ArrayUtil;
+import com.youqusoft.vision.flow.common.cache.UnifiedCacheManager;
 import com.youqusoft.vision.flow.config.property.SecurityProperties;
 import com.youqusoft.vision.flow.core.filter.RateLimiterFilter;
 import com.youqusoft.vision.flow.core.security.exception.MyAccessDeniedHandler;
@@ -19,7 +20,6 @@ import com.youqusoft.vision.flow.system.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -33,6 +33,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
  * Spring Security 配置类
@@ -46,7 +47,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final UnifiedCacheManager cacheManager;
     private final PasswordEncoder passwordEncoder;
 
     private final TokenManager tokenManager;
@@ -62,7 +63,7 @@ public class SecurityConfig {
      * 配置安全过滤链 SecurityFilterChain
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception {
 
         return http
                 .authorizeHttpRequests(requestMatcherRegistry -> {
@@ -91,9 +92,9 @@ public class SecurityConfig {
                 // 禁用 X-Frame-Options 响应头，允许页面被嵌套到 iframe 中
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 // 限流过滤器
-                .addFilterBefore(new RateLimiterFilter(redisTemplate, configService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new RateLimiterFilter(cacheManager, configService), UsernamePasswordAuthenticationFilter.class)
                 // 验证码校验过滤器
-                .addFilterBefore(new CaptchaValidationFilter(redisTemplate, codeGenerator), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new CaptchaValidationFilter(cacheManager, codeGenerator, introspector), UsernamePasswordAuthenticationFilter.class)
                 // 验证和解析过滤器
                 .addFilterBefore(new TokenAuthenticationFilter(tokenManager), UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -146,7 +147,7 @@ public class SecurityConfig {
      */
     @Bean
     public SmsAuthenticationProvider smsAuthenticationProvider() {
-        return new SmsAuthenticationProvider(userService, redisTemplate);
+        return new SmsAuthenticationProvider(userService, cacheManager);
     }
 
     /**

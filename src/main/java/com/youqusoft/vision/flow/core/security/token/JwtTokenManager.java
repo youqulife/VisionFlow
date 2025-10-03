@@ -8,6 +8,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTPayload;
 import cn.hutool.jwt.JWTUtil;
+import com.youqusoft.vision.flow.common.cache.UnifiedCacheManager;
 import com.youqusoft.vision.flow.common.constant.JwtClaimConstants;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.common.constant.SecurityConstants;
@@ -46,13 +47,13 @@ import java.util.stream.Collectors;
 public class JwtTokenManager implements TokenManager {
 
     private final SecurityProperties securityProperties;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final UnifiedCacheManager cacheManager;
     private final byte[] secretKey;
 
-    public JwtTokenManager(SecurityProperties securityProperties, RedisTemplate<String, Object> redisTemplate) {
+    public JwtTokenManager(SecurityProperties securityProperties,  UnifiedCacheManager cacheManager) {
         this.securityProperties = securityProperties;
-        this.redisTemplate = redisTemplate;
         this.secretKey = securityProperties.getSession().getJwt().getSecretKey().getBytes();
+        this.cacheManager = cacheManager;
     }
 
     /**
@@ -151,7 +152,9 @@ public class JwtTokenManager implements TokenManager {
                     }
                 }
                 // 判断是否在黑名单中，如果在，则返回 false 标识Token无效
-                if (Boolean.TRUE.equals(redisTemplate.hasKey(StrUtil.format(RedisConstants.Auth.BLACKLIST_TOKEN, jti)))) {
+//                redisTemplate.hasKey(StrUtil.format(RedisConstants.Auth.BLACKLIST_TOKEN, jti)))
+                boolean isBlacklist = cacheManager.hasKey(RedisConstants.Auth.BLACKLIST_TOKEN, jti);
+                if (isBlacklist) {
                     return false;
                 }
             }
@@ -190,12 +193,13 @@ public class JwtTokenManager implements TokenManager {
             }
             // 计算Token剩余时间，将其加入黑名单
             int expirationIn = expirationAt - currentTimeSeconds;
-            redisTemplate.opsForValue().set(blacklistTokenKey, null, expirationIn, TimeUnit.SECONDS);
+//            redisTemplate.opsForValue().set(blacklistTokenKey, null, expirationIn, TimeUnit.SECONDS);
+            cacheManager.put(RedisConstants.Auth.BLACKLIST_TOKEN,blacklistTokenKey, null);
         } else {
             // 永不过期的Token永久加入黑名单
-            redisTemplate.opsForValue().set(blacklistTokenKey, null);
+//            redisTemplate.opsForValue().set(blacklistTokenKey, null);
+            cacheManager.put(RedisConstants.Auth.BLACKLIST_TOKEN,blacklistTokenKey, null);
         }
-        ;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.youqusoft.vision.flow.core.security.filter;
 
 import cn.hutool.captcha.generator.CodeGenerator;
 import cn.hutool.core.util.StrUtil;
+import com.youqusoft.vision.flow.common.cache.UnifiedCacheManager;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.common.constant.SecurityConstants;
 import com.youqusoft.vision.flow.common.result.ResultCode;
@@ -10,9 +11,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -31,15 +32,13 @@ public class CaptchaValidationFilter extends OncePerRequestFilter {
     public static final String CAPTCHA_CODE_PARAM_NAME = "captchaCode";
     public static final String CAPTCHA_KEY_PARAM_NAME = "captchaKey";
 
-    private final RedisTemplate<String, Object> redisTemplate;
-
+    private final UnifiedCacheManager cacheManager;
     private final CodeGenerator codeGenerator;
 
-    public CaptchaValidationFilter(RedisTemplate<String, Object> redisTemplate, CodeGenerator codeGenerator) {
-        this.redisTemplate = redisTemplate;
+    public CaptchaValidationFilter(UnifiedCacheManager cacheManager, CodeGenerator codeGenerator, HandlerMappingIntrospector introspector) {
+        this.cacheManager = cacheManager;
         this.codeGenerator = codeGenerator;
     }
-
 
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -54,7 +53,7 @@ public class CaptchaValidationFilter extends OncePerRequestFilter {
             }
             // 缓存中的验证码
             String verifyCodeKey = request.getParameter(CAPTCHA_KEY_PARAM_NAME);
-            String cacheVerifyCode = (String) redisTemplate.opsForValue().get(
+            String cacheVerifyCode = cacheManager.get(RedisConstants.Captcha.IMAGE_CODE,
                     StrUtil.format(RedisConstants.Captcha.IMAGE_CODE, verifyCodeKey)
             );
             if (cacheVerifyCode == null) {

@@ -2,6 +2,7 @@ package com.youqusoft.vision.flow.core.security.extension.sms;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.youqusoft.vision.flow.common.cache.UnifiedCacheManager;
 import com.youqusoft.vision.flow.common.constant.RedisConstants;
 import com.youqusoft.vision.flow.core.security.exception.CaptchaValidationException;
 import com.youqusoft.vision.flow.core.security.model.SysUserDetails;
@@ -27,12 +28,12 @@ public class SmsAuthenticationProvider implements AuthenticationProvider {
 
     private final UserService userService;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final UnifiedCacheManager cacheManager;
 
 
-    public SmsAuthenticationProvider(UserService userService, RedisTemplate<String, Object> redisTemplate) {
+    public SmsAuthenticationProvider(UserService userService, UnifiedCacheManager cacheManager) {
         this.userService = userService;
-        this.redisTemplate = redisTemplate;
+        this.cacheManager = cacheManager;
     }
 
     /**
@@ -62,13 +63,13 @@ public class SmsAuthenticationProvider implements AuthenticationProvider {
 
         // 校验发送短信验证码的手机号是否与当前登录用户一致
         String cacheKey = StrUtil.format(RedisConstants.Captcha.SMS_LOGIN_CODE, mobile);
-        String cachedVerifyCode = (String) redisTemplate.opsForValue().get(cacheKey);
+        String cachedVerifyCode = cacheManager.get(RedisConstants.Captcha.SMS_LOGIN_CODE, cacheKey);
 
         if (!StrUtil.equals(inputVerifyCode, cachedVerifyCode)) {
             throw new CaptchaValidationException("验证码错误");
         } else {
             // 验证成功后删除验证码
-            redisTemplate.delete(cacheKey);
+            cacheManager.evict(RedisConstants.Captcha.SMS_LOGIN_CODE,cacheKey);
         }
 
         // 构建认证后的用户详情信息
