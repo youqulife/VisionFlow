@@ -3,6 +3,8 @@ package com.youqusoft.vision.flow.modules.product.model.vo;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import com.youqusoft.vision.flow.modules.product.model.form.ProductSKUAttribute;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +34,7 @@ public class ProductSkuVO implements Serializable {
     @Schema(description = "SKU编码")
     private String skuCode;
     @Schema(description = "SKU属性")
-    private String skuAttributes;
+    private ProductSKUAttribute skuAttributes;
     @Schema(description = "库存数量")
     private Integer stockQuantity;
     @Schema(description = "进货价")

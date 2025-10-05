@@ -27,12 +27,7 @@ public class ProductForm implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键ID")
-    @NotNull(message = "主键ID不能为空")
     private Long id;
-
-    @Schema(description = "租户ID")
-    @NotNull(message = "租户ID不能为空")
-    private Long tenantId;
 
     @Schema(description = "商品编码：唯一库存单位编码")
     @Size(max=50, message="商品编码：唯一库存单位编码长度不能超过50个字符")
@@ -55,20 +50,15 @@ public class ProductForm implements Serializable {
     @Size(max=100, message="型号：商品具体型号长度不能超过100个字符")
     private String model;
 
+    @Schema(description = "商品属性")
+    private ProductAttribute attribute;
+
     @Schema(description = "商品SKU表单对象")
     @NotEmpty(message = "商品SKU表单对象不能为空")
     private List<ProductSkuForm> skus;
 
-    @Schema(description = "商品属性")
-    private ProductAttribute productAttribute;
-
     @Schema(description = "是否上架：0-下架, 1-上架")
     @NotNull(message = "是否上架：0-下架, 1-上架不能为空")
     private Integer isActive;
-
-    @Schema(description = "软删除标记：0-未删除, 1-已删除")
-    @NotNull(message = "软删除标记：0-未删除, 1-已删除不能为空")
-    private Integer isDeleted;
-
 
 }

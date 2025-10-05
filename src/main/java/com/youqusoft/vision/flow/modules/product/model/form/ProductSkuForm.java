@@ -27,10 +27,6 @@ public class ProductSkuForm implements Serializable {
     @Schema(description = "SKU ID")
     private Long id;
 
-    @Schema(description = "商品ID")
-    @NotNull(message = "商品ID不能为空")
-    private Long productId;
-
     @Schema(description = "SKU编码")
     @NotBlank(message = "SKU编码不能为空")
     @Size(max=50, message="SKU编码长度不能超过50个字符")
@@ -55,6 +51,5 @@ public class ProductSkuForm implements Serializable {
     private Integer minStockAlert;
 
     private Integer isActive;
-
 
 }

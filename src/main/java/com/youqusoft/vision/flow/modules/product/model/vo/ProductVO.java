@@ -5,11 +5,14 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.youqusoft.vision.flow.modules.product.model.form.ProductAttribute;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 商品信息视图对象
@@ -29,10 +32,10 @@ public class ProductVO implements Serializable {
     private Long id;
     @Schema(description = "租户ID")
     private Long tenantId;
+    @Schema(description = "商品SKU编码：唯一库存单位编码")
+    private String productCode;
     @Schema(description = "商品名称：展示给客户的名称")
     private String name;
-    @Schema(description = "商品SKU编码：唯一库存单位编码")
-    private String sku;
     @Schema(description = "商品分类ID：关联categories表")
     private Long categoryId;
     @Schema(description = "商品分类名称")
@@ -43,19 +46,12 @@ public class ProductVO implements Serializable {
     private String brandName;
     @Schema(description = "型号：商品具体型号")
     private String model;
-    @Schema(description = "折射率：如1.56, 1.60, 1.67, 1.74等")
-    private BigDecimal refractiveIndex;
-    @Schema(description = "镜片功能：如'防蓝光', '变色', '渐进多焦点'等")
-    private String lensFunction;
-    @Schema(description = "进货价格")
-    private BigDecimal purchasePrice;
-    @Schema(description = "销售价格")
-    private BigDecimal salePrice;
-    @Schema(description = "库存数量")
-    private Integer stockQuantity;
-    @Schema(description = "最低库存预警线")
-    private Integer minStockAlert;
-    @Schema(description = "是否上架：0-下架, 1-上架")
+    @Schema(description = "商品属性（JSON格式存储）")
+    @JsonIgnore
+    private String attributes;
+    @Schema(description = "商品属性（JSON格式存储）")
+    private ProductAttribute attribute;
+    private List<ProductSkuVO> skus;
     private Integer isActive;
     @Schema(description = "软删除标记：0-未删除, 1-已删除")
     private Integer isDeleted;

@@ -1,6 +1,8 @@
 package com.youqusoft.vision.flow.modules.product.model.form;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,6 +34,40 @@ public class ProductSKUAttribute implements Serializable {
      * 具体属性
      */
     private SpecificAttributes specificAttributes;
+
+    /**
+     * 将对象转换为JSON字符串
+     *
+     * @return JSON字符串表示
+     */
+    public String toJsonString() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            // 发生异常时返回null
+            return null;
+        }
+    }
+
+    /**
+     * 从JSON字符串创建对象
+     *
+     * @param jsonString JSON字符串
+     * @return ProductSKUAttribute对象
+     */
+    public static ProductSKUAttribute fromJsonString(String jsonString) {
+        if (jsonString == null || jsonString.isEmpty()) {
+            return null;
+        }
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(jsonString, ProductSKUAttribute.class);
+        } catch (Exception e) {
+            // 解析失败时返回null
+            return null;
+        }
+    }
 
     /**
      * 颜色内部类
