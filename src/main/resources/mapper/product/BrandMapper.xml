@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqusoft.vision.flow.modules.product.mapper.BrandMapper">
+
+    <!-- 获取品牌分页列表 -->
+    <select id="getBrandPage" resultType="com.youqusoft.vision.flow.modules.product.model.vo.BrandVO">
+        SELECT
+                id,
+                name,
+                logo_url,
+                description,
+                website,
+                status,
+                sort_order,
+                create_time,
+                update_time
+        FROM
+            brand
+        <where>
+        </where>
+    </select>
+
+</mapper>

@@ -104,7 +104,7 @@ security:
 # 文件存储配置
 oss:
   # OSS 类型 (目前支持aliyun、minio、local)
-  type: minio
+  type: local
   # MinIO 对象存储服务
   minio:
     # MinIO 服务地址
@@ -130,7 +130,7 @@ oss:
   # 本地存储
   local:
     # 文件存储路径 请注意下，mac用户请使用 /Users/your-username/your-path/，否则会有权限问题，windows用户请使用 D:/your-path/
-    storage-path: /Users/theo/home/
+    storage-path: /Users/yunjie.zhang/Workspaces/Project/youqusoft/VisionFlow
 # 短信配置
 sms:
   # 阿里云短信

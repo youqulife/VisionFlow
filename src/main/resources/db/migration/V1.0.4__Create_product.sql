@@ -1,3 +1,18 @@
+CREATE TABLE `brand`
+(
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '品牌ID',
+    `name`        VARCHAR(100)    NOT NULL COMMENT '品牌名称',
+    `logo_url`    VARCHAR(255) COMMENT '品牌Logo URL',
+    `description` TEXT COMMENT '品牌描述',
+    `website`     VARCHAR(255) COMMENT '官方网站',
+    `status`      TINYINT         NOT NULL DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
+    `sort_order`  INT             NOT NULL DEFAULT 0 COMMENT '排序值，越大越靠前',
+    `create_time` TIMESTAMP                DEFAULT CURRENT_TIMESTAMP,
+    `update_time` TIMESTAMP                DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_name` (`name`),                      -- 品牌名唯一
+    KEY `idx_status_sort` (`status`, `sort_order` DESC) -- 用于前台按状态和排序查询
+) ENGINE = InnoDB COMMENT ='品牌表';
 
 -- =============================================
 -- 表：商品分类表 (categories)
@@ -13,8 +28,8 @@ CREATE TABLE category
     description TEXT COMMENT '分类描述',
     is_active   TINYINT(1)  NOT NULL DEFAULT 1 COMMENT '是否启用：0-禁用, 1-启用',
     is_deleted  TINYINT(1)  NOT NULL DEFAULT 0 COMMENT '软删除标记：0-未删除, 1-已删除',
-    create_time  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
-    update_time  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
+    create_time TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+    update_time TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
 
     -- 索引
     FOREIGN KEY (parent_id) REFERENCES category (id),
@@ -46,30 +61,60 @@ CREATE TABLE product
 (
     id               BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
     tenant_id        BIGINT         NOT NULL COMMENT '租户ID',
-    sku              VARCHAR(50) UNIQUE COMMENT '商品SKU编码：唯一库存单位编码',
+    product_code     VARCHAR(50)    NOT NULL COMMENT '产品款号',
     name             VARCHAR(200)   NOT NULL COMMENT '商品名称：展示给客户的名称',
     category_id      BIGINT         NOT NULL COMMENT '商品分类ID：关联categories表',
-    brand            VARCHAR(100) COMMENT '品牌名称：如"依视路", "蔡司", "雷朋"等',
+    brand_id         BIGINT         NOT NULL COMMENT '品牌名称：如"依视路", "蔡司", "雷朋"等',
     model            VARCHAR(100) COMMENT '型号：商品具体型号',
 
-    -- 镜片特有属性（对于非镜片商品这些字段为NULL）
-    refractive_index DECIMAL(3, 2) COMMENT '折射率：如1.56, 1.60, 1.67, 1.74等',
-    lens_function    VARCHAR(100) COMMENT '镜片功能：如"防蓝光", "变色", "渐进多焦点"等',
+    -- 镜片特有属性（对于非镜片商品这些字段为NULL）-- 商品属性（JSON存储所有变体属性）
+    attributes JSON COMMENT '商品属性',
 
-    -- 通用商品属性
-    purchase_price   DECIMAL(10, 2) NOT NULL COMMENT '进货价格',
-    sale_price       DECIMAL(10, 2) NOT NULL COMMENT '销售价格',
-    stock_quantity   INT            NOT NULL DEFAULT 0 COMMENT '库存数量',
-    min_stock_alert  INT            NOT NULL DEFAULT 5 COMMENT '最低库存预警线',
+    -- 价格信息（基准价格，实际价格在SKU表）
+    base_price DECIMAL(10, 2) COMMENT '基准价格',
+
     is_active        TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '是否上架：0-下架, 1-上架',
     is_deleted       TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '软删除标记：0-未删除, 1-已删除',
-    create_time       TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
-    update_time       TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
+    create_time      TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+    update_time      TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
 
     -- 外键和索引
     FOREIGN KEY (category_id) REFERENCES category (id),
     INDEX idx_category (category_id) COMMENT '分类查询索引',
-    INDEX idx_brand (brand) COMMENT '品牌查询索引'
+    INDEX idx_brand (brand_id) COMMENT '品牌查询索引'
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='商品信息表';
+
+CREATE TABLE product_sku
+(
+    id              BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'SKU ID',
+    tenant_id       BIGINT         NOT NULL COMMENT '租户ID',
+    product_id      BIGINT         NOT NULL COMMENT '商品ID',
+
+    -- SKU唯一标识
+    sku_code        VARCHAR(50)    NOT NULL COMMENT 'SKU编码',
+
+    -- SKU具体属性
+    sku_attributes  JSON           NOT NULL COMMENT 'SKU属性',
+
+    -- 库存与价格
+    stock_quantity  INT        DEFAULT 0 COMMENT '库存数量',
+    purchase_price  DECIMAL(10, 2) NOT NULL COMMENT '进货价',
+    sale_price      DECIMAL(10, 2) NOT NULL COMMENT '销售价',
+
+    -- 状态管理
+    min_stock_alert INT        DEFAULT 5 COMMENT '库存预警',
+    is_active       TINYINT(1) DEFAULT 1,
+    is_deleted      TINYINT(1) DEFAULT 0,
+    create_time     TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+    update_time     TIMESTAMP  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (product_id) REFERENCES product (id),
+
+    UNIQUE INDEX idx_tenant_sku (tenant_id, sku_code),
+    INDEX idx_product_stock (product_id, stock_quantity),
+    INDEX idx_tenant_product (tenant_id, product_id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT ='商品SKU表';

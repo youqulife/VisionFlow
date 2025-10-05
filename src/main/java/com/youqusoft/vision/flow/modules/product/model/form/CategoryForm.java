@@ -22,7 +22,6 @@ public class CategoryForm implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键ID")
-    @NotNull(message = "主键ID不能为空")
     private Long id;
 
     @Schema(description = "分类名称")
@@ -44,10 +43,5 @@ public class CategoryForm implements Serializable {
     @Schema(description = "是否启用：0-禁用, 1-启用")
     @NotNull(message = "是否启用：0-禁用, 1-启用不能为空")
     private Integer isActive;
-
-    @Schema(description = "软删除标记：0-未删除, 1-已删除")
-    @NotNull(message = "软删除标记：0-未删除, 1-已删除不能为空")
-    private Integer isDeleted;
-
 
 }

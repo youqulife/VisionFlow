@@ -10,7 +10,9 @@
             name,
             sku,
             category_id,
-            brand,
+            c.name as category_name,
+            brand_id,
+            b.name as brand_name,
             model,
             refractive_index,
             lens_function,
@@ -23,9 +25,11 @@
             create_time,
             update_time
         FROM
-            products
+            product p
+        left join category c on p.category_id = c.id
+        left join brand b on p.brand_id = b.id
         <where>
-            is_deleted = 0
+            p.is_deleted = 0
         </where>
     </select>
 

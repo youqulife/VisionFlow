@@ -16,7 +16,7 @@ import com.youqusoft.vision.flow.common.base.BaseEntity;
  */
 @Getter
 @Setter
-@TableName("products")
+@TableName("product")
 public class Product extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
@@ -40,7 +40,7 @@ public class Product extends BaseEntity {
     /**
      * 品牌名称：如"依视路", "蔡司", "雷朋"等
      */
-    private String brand;
+    private Long brandId;
     /**
      * 型号：商品具体型号
      */

@@ -4,6 +4,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -44,4 +45,7 @@ public class CategoryVO implements Serializable {
     @Schema(description = "记录最后更新时间")
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime updateTime;
+    
+    @Schema(description = "子分类列表")
+    private List<CategoryVO> children;
 }

@@ -1,7 +1,12 @@
 package com.youqusoft.vision.flow.modules.product.controller;
 
+import com.youqusoft.vision.flow.common.annotation.Log;
+import com.youqusoft.vision.flow.common.annotation.RepeatSubmit;
+import com.youqusoft.vision.flow.common.enums.LogModuleEnum;
+import com.youqusoft.vision.flow.common.model.Option;
 import com.youqusoft.vision.flow.modules.product.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.youqusoft.vision.flow.modules.product.model.form.CategoryForm;
@@ -18,6 +23,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 /**
  * 商品分类前端控制层
  *
@@ -28,22 +35,32 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/v1/category")
 @RequiredArgsConstructor
-public class CategoryController  {
+@Slf4j
+public class CategoryController {
 
     private final CategoryService categoryService;
 
     @Operation(summary = "商品分类分页列表")
     @GetMapping("/page")
     @PreAuthorize("@ss.hasPerm('product:category:query')")
-    public PageResult<CategoryVO> getCategoryPage(CategoryQuery queryParams ) {
-        IPage<CategoryVO> result = categoryService.getCategoryPage(queryParams);
-        return PageResult.success(result);
+    @Log(value = "商品分类分页列表", module = LogModuleEnum.OTHER)
+    public Result<List<CategoryVO>> getCategoryPage(CategoryQuery queryParams) {
+        List<CategoryVO> categoryList = categoryService.listCategories(queryParams);
+        return Result.success(categoryList);
+    }
+
+    @Operation(summary = "商品分类下拉列表")
+    @GetMapping("/options")
+    public Result<List<Option<Long>>> getCategoryOptions() {
+        List<Option<Long>> categories = categoryService.listCategoryOptions();
+        return Result.success(categories);
     }
 
     @Operation(summary = "新增商品分类")
     @PostMapping
     @PreAuthorize("@ss.hasPerm('product:category:add')")
-    public Result<Void> saveCategory(@RequestBody @Valid CategoryForm formData ) {
+    @RepeatSubmit
+    public Result<?> addCategory(@RequestBody @Valid CategoryForm formData) {
         boolean result = categoryService.saveCategory(formData);
         return Result.judge(result);
     }
@@ -52,7 +69,7 @@ public class CategoryController  {
     @GetMapping("/{id}/form")
     @PreAuthorize("@ss.hasPerm('product:category:edit')")
     public Result<CategoryForm> getCategoryForm(
-        @Parameter(description = "商品分类ID") @PathVariable Long id
+            @Parameter(description = "商品分类ID") @PathVariable Long id
     ) {
         CategoryForm formData = categoryService.getCategoryFormData(id);
         return Result.success(formData);
@@ -61,7 +78,7 @@ public class CategoryController  {
     @Operation(summary = "修改商品分类")
     @PutMapping(value = "/{id}")
     @PreAuthorize("@ss.hasPerm('product:category:edit')")
-    public Result<Void> updateCategory(
+    public Result<?> updateCategory(
             @Parameter(description = "商品分类ID") @PathVariable Long id,
             @RequestBody @Validated CategoryForm formData
     ) {
@@ -72,10 +89,10 @@ public class CategoryController  {
     @Operation(summary = "删除商品分类")
     @DeleteMapping("/{ids}")
     @PreAuthorize("@ss.hasPerm('product:category:delete')")
-    public Result<Void> deleteCategorys(
-        @Parameter(description = "商品分类ID，多个以英文逗号(,)分割") @PathVariable String ids
+    public Result<?> deleteCategories(
+            @Parameter(description = "商品分类ID，多个以英文逗号(,)分割") @PathVariable String ids
     ) {
-        boolean result = categoryService.deleteCategorys(ids);
+        boolean result = categoryService.deleteCategories(ids);
         return Result.judge(result);
     }
 }

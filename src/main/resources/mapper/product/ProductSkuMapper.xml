@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqusoft.vision.flow.modules.product.mapper.ProductSkuMapper">
+
+    <!-- 获取商品SKU分页列表 -->
+    <select id="getProductSkuPage" resultType="com.youqusoft.vision.flow.modules.product.model.vo.ProductSkuVO">
+        SELECT
+                id,
+                tenant_id,
+                product_id,
+                sku_code,
+                sku_attributes,
+                stock_quantity,
+                purchase_price,
+                sale_price,
+                min_stock_alert,
+                is_active,
+                is_deleted,
+                create_time,
+                update_time
+        FROM
+            product_sku
+        <where>
+        </where>
+    </select>
+
+</mapper>

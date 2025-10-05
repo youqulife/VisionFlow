@@ -35,8 +35,12 @@ public class ProductVO implements Serializable {
     private String sku;
     @Schema(description = "商品分类ID：关联categories表")
     private Long categoryId;
+    @Schema(description = "商品分类名称")
+    private String categoryName;
     @Schema(description = "品牌名称：如'依视路', '蔡司', '雷朋'等")
-    private String brand;
+    private Long brandId;
+    @Schema(description = "品牌名称：如'依视路', '蔡司', '雷朋'等")
+    private String brandName;
     @Schema(description = "型号：商品具体型号")
     private String model;
     @Schema(description = "折射率：如1.56, 1.60, 1.67, 1.74等")

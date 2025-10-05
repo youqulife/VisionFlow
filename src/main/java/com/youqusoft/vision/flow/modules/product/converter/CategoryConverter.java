@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.youqusoft.vision.flow.modules.product.model.entity.Category;
 import com.youqusoft.vision.flow.modules.product.model.form.CategoryForm;
+import com.youqusoft.vision.flow.modules.product.model.vo.CategoryVO;
 
 /**
  * 商品分类对象转换器
@@ -15,6 +16,8 @@ import com.youqusoft.vision.flow.modules.product.model.form.CategoryForm;
 public interface CategoryConverter{
 
     CategoryForm toForm(Category entity);
+
+    CategoryVO toVo(Category entity);
 
     Category toEntity(CategoryForm formData);
 }

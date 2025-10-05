@@ -1,11 +1,14 @@
 package com.youqusoft.vision.flow.modules.product.service;
 
+import com.youqusoft.vision.flow.common.model.Option;
 import com.youqusoft.vision.flow.modules.product.model.entity.Category;
 import com.youqusoft.vision.flow.modules.product.model.form.CategoryForm;
 import com.youqusoft.vision.flow.modules.product.model.query.CategoryQuery;
 import com.youqusoft.vision.flow.modules.product.model.vo.CategoryVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * 商品分类服务类
@@ -16,11 +19,18 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface CategoryService extends IService<Category> {
 
     /**
-     *商品分类分页列表
+     * 获取商品分类列表（树状结构）
      *
-     * @return {@link IPage<CategoryVO>} 商品分类分页列表
+     * @return {@link List<CategoryVO>} 商品分类列表
      */
-    IPage<CategoryVO> getCategoryPage(CategoryQuery queryParams);
+    List<CategoryVO> listCategories(CategoryQuery queryParams);
+
+    /**
+     * 商品分类下拉列表
+     *
+     * @return {@link List<Option>} 商品分类下拉列表
+     */
+    List<Option<Long>> listCategoryOptions();
 
     /**
      * 获取商品分类表单数据
@@ -53,6 +63,6 @@ public interface CategoryService extends IService<Category> {
      * @param ids 商品分类ID，多个以英文逗号(,)分割
      * @return 是否删除成功
      */
-    boolean deleteCategorys(String ids);
+    boolean deleteCategories(String ids);
 
 }
