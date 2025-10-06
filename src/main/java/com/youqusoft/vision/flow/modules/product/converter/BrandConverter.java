@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.youqusoft.vision.flow.modules.product.model.entity.Brand;
 import com.youqusoft.vision.flow.modules.product.model.form.BrandForm;
+import com.youqusoft.vision.flow.modules.product.model.vo.BrandVO;
 
 /**
  * 品牌对象转换器
@@ -15,6 +16,8 @@ import com.youqusoft.vision.flow.modules.product.model.form.BrandForm;
 public interface BrandConverter{
 
     BrandForm toForm(Brand entity);
+
+    BrandVO toVo(Brand entity);
 
     Brand toEntity(BrandForm formData);
 }

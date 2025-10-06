@@ -23,22 +23,52 @@ public class Brand extends BaseEntity {
      * 品牌名称
      */
     private String name;
+    
     /**
-     * 品牌Logo URL
+     * 英文名
      */
-    private String logoUrl;
+    private String englishName;
+    
+    /**
+     * 原产国
+     */
+    private String originCountry;
+    
+    /**
+     * 品牌类别
+     */
+    private String category;
+    
+    /**
+     * 价格定位
+     */
+    private String priceLevel;
+    
     /**
      * 品牌描述
      */
     private String description;
+    
     /**
-     * 官方网站
+     * 品牌Logo
      */
-    private String website;
+    private String logoUrl;
+    
+    /**
+     * 是否热门品牌
+     */
+    private Integer isPopular;
+    
+    /**
+     * 是否启用
+     */
+    private Integer isActive;
+    
     /**
      * 状态：0-禁用，1-启用
      */
     private Integer status;
+    
     /**
      * 排序值，越大越靠前
      */

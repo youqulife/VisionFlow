@@ -63,6 +63,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 new Page<>(queryParams.getPageNum(), queryParams.getPageSize()),
                 queryParams
         );
+        if (pageVO.getRecords().isEmpty()) {
+            return pageVO;
+        }
         List<Long> productIds = pageVO.getRecords().stream()
                 .map(ProductVO::getId)
                 .toList();

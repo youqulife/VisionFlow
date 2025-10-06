@@ -26,20 +26,43 @@ public class BrandVO implements Serializable {
 
     @Schema(description = "品牌ID")
     private Long id;
+    
     @Schema(description = "品牌名称")
     private String name;
+    
+    @Schema(description = "英文名")
+    private String englishName;
+    
+    @Schema(description = "原产国")
+    private String originCountry;
+    
+    @Schema(description = "品牌类别")
+    private String category;
+    
+    @Schema(description = "价格定位")
+    private String priceLevel;
+    
     @Schema(description = "品牌Logo URL")
     private String logoUrl;
+    
+    @Schema(description = "是否热门品牌")
+    private Integer isPopular;
+    
+    @Schema(description = "是否启用")
+    private Integer isActive;
+    
     @Schema(description = "品牌描述")
     private String description;
-    @Schema(description = "官方网站")
-    private String website;
+    
     @Schema(description = "状态：0-禁用，1-启用")
     private Integer status;
+    
     @Schema(description = "排序值，越大越靠前")
     private Integer sortOrder;
+    
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime createTime;
+    
     @JsonFormat(pattern = "yyyy/MM/dd HH:mm")
     private LocalDateTime updateTime;
 }

@@ -1,14 +1,24 @@
 CREATE TABLE `brand`
 (
-    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '品牌ID',
-    `name`        VARCHAR(100)    NOT NULL COMMENT '品牌名称',
-    `logo_url`    VARCHAR(255) COMMENT '品牌Logo URL',
-    `description` TEXT COMMENT '品牌描述',
-    `website`     VARCHAR(255) COMMENT '官方网站',
-    `status`      TINYINT         NOT NULL DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
-    `sort_order`  INT             NOT NULL DEFAULT 0 COMMENT '排序值，越大越靠前',
-    `create_time` TIMESTAMP                DEFAULT CURRENT_TIMESTAMP,
-    `update_time` TIMESTAMP                DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '品牌ID',
+    -- 品牌基本信息
+    name           VARCHAR(100)    NOT NULL COMMENT '品牌名称',
+    english_name   VARCHAR(100) COMMENT '英文名',
+    origin_country VARCHAR(50) COMMENT '原产国',
+
+    -- 品牌分类
+    category       ENUM ('luxury', 'fashion', 'sports', 'optical', 'kids', 'local') COMMENT '品牌类别',
+    price_level    ENUM ('premium', 'mid_high', 'mid', 'affordable') COMMENT '价格定位',
+
+    -- 品牌属性
+    description    TEXT COMMENT '品牌描述',
+    logo_url       VARCHAR(255) COMMENT '品牌Logo',
+    is_popular     TINYINT(1)               DEFAULT 0 COMMENT '是否热门品牌',
+    is_active      TINYINT(1)               DEFAULT 1,
+    `status`       TINYINT         NOT NULL DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
+    `sort_order`   INT             NOT NULL DEFAULT 0 COMMENT '排序值，越大越靠前',
+    `create_time`  TIMESTAMP                DEFAULT CURRENT_TIMESTAMP,
+    `update_time`  TIMESTAMP                DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_name` (`name`),                      -- 品牌名唯一
     KEY `idx_status_sort` (`status`, `sort_order` DESC) -- 用于前台按状态和排序查询
@@ -59,24 +69,24 @@ VALUES ('镜架', 1, NULL, 1, '光学镜架、太阳镜架等'),
 -- =============================================
 CREATE TABLE product
 (
-    id               BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
-    tenant_id        BIGINT         NOT NULL COMMENT '租户ID',
-    product_code     VARCHAR(50)    NOT NULL COMMENT '产品款号',
-    name             VARCHAR(200)   NOT NULL COMMENT '商品名称：展示给客户的名称',
-    category_id      BIGINT         NOT NULL COMMENT '商品分类ID：关联categories表',
-    brand_id         BIGINT         NOT NULL COMMENT '品牌名称：如"依视路", "蔡司", "雷朋"等',
-    model            VARCHAR(100) COMMENT '型号：商品具体型号',
+    id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    tenant_id    BIGINT       NOT NULL COMMENT '租户ID',
+    product_code VARCHAR(50)  NOT NULL COMMENT '产品款号',
+    name         VARCHAR(200) NOT NULL COMMENT '商品名称：展示给客户的名称',
+    category_id  BIGINT       NOT NULL COMMENT '商品分类ID：关联categories表',
+    brand_id     BIGINT       NOT NULL COMMENT '品牌名称：如"依视路", "蔡司", "雷朋"等',
+    model        VARCHAR(100) COMMENT '型号：商品具体型号',
 
     -- 镜片特有属性（对于非镜片商品这些字段为NULL）-- 商品属性（JSON存储所有变体属性）
-    attributes JSON COMMENT '商品属性',
+    attributes   JSON COMMENT '商品属性',
 
     -- 价格信息（基准价格，实际价格在SKU表）
-    base_price DECIMAL(10, 2) COMMENT '基准价格',
+    base_price   DECIMAL(10, 2) COMMENT '基准价格',
 
-    is_active        TINYINT(1)     NOT NULL DEFAULT 1 COMMENT '是否上架：0-下架, 1-上架',
-    is_deleted       TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '软删除标记：0-未删除, 1-已删除',
-    create_time      TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
-    update_time      TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
+    is_active    TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '是否上架：0-下架, 1-上架',
+    is_deleted   TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '软删除标记：0-未删除, 1-已删除',
+    create_time  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+    update_time  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间',
 
     -- 外键和索引
     FOREIGN KEY (category_id) REFERENCES category (id),
