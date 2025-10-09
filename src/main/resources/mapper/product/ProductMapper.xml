@@ -25,6 +25,15 @@
         left join brand b on p.brand_id = b.id
         <where>
             p.is_deleted = 0
+            <if test="queryParams.keywords != null">
+                and p.name like concat('%', #{queryParams.keywords}, '%')
+            </if>
+            <if test="queryParams.categoryId != null">
+                and p.category_id = #{queryParams.categoryId}
+            </if>
+            <if test="queryParams.brandId != null">
+                and p.brand_id = #{queryParams.brandId}
+            </if>
         </where>
     </select>
 

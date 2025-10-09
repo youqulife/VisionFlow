@@ -31,6 +31,8 @@ public class ProductSkuVO implements Serializable {
     private Long tenantId;
     @Schema(description = "商品ID")
     private Long productId;
+    @Schema(description = "SKU名称")
+    private String name;
     @Schema(description = "SKU编码")
     private String skuCode;
     @Schema(description = "SKU属性")

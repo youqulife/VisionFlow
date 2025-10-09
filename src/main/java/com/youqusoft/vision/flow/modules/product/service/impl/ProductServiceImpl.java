@@ -177,6 +177,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             // 收集需要删除的SKU ID
             List<Long> skusToDelete = new ArrayList<>();
             
+            // 创建一个映射，将现有的SKU按skuCode分组，用于检查唯一性
+            Map<String, ProductSku> existingSkuMap = existingSkus.stream()
+                .collect(Collectors.toMap(ProductSku::getSkuCode, sku -> sku));
+            
             for (ProductSkuForm skuForm : formData.getSkus()) {
                 ProductSku sku = productSkuConverter.toEntity(skuForm);
                 sku.setProductId(id);
@@ -188,8 +192,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                     sku.setId(skuForm.getId());
                     skusToSave.add(sku);
                 } else {
-                    // 新增SKU
-                    skusToSave.add(sku);
+                    // 新增SKU，检查是否与现有SKU编码冲突
+                    if (!existingSkuMap.containsKey(sku.getSkuCode())) {
+                        skusToSave.add(sku);
+                    } else {
+                        // 如果SKU编码已存在，更新现有记录而不是插入新记录
+                        ProductSku existingSku = existingSkuMap.get(sku.getSkuCode());
+                        sku.setId(existingSku.getId());
+                        skusToSave.add(sku);
+                    }
                 }
             }
             

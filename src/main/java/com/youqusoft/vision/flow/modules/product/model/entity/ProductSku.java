@@ -29,6 +29,10 @@ public class ProductSku extends BaseEntity {
      */
     private Long productId;
     /**
+     * SKU名称
+     */
+    private String name;
+    /**
      * SKU编码
      */
     private String skuCode;

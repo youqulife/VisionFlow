@@ -1,24 +1,26 @@
 package com.youqusoft.vision.flow.modules.order.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.youqusoft.vision.flow.modules.order.model.entity.OrderItem;
 import com.youqusoft.vision.flow.modules.order.model.form.OrderItemForm;
+import com.youqusoft.vision.flow.modules.order.model.query.OrderItemQuery;
+import com.youqusoft.vision.flow.modules.order.model.vo.OrderItemVO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
- * 订单明细服务接口层
+ * 订单明细服务类
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-10-06 21:14
  */
 public interface OrderItemService extends IService<OrderItem> {
 
     /**
-     * 保存订单明细
+     *订单明细分页列表
      *
-     * @param orderItemForm 订单明细表单数据
-     * @return 是否保存成功
+     * @return {@link IPage<OrderItemVO>} 订单明细分页列表
      */
-    boolean saveOrderItem(OrderItemForm orderItemForm);
+    IPage<OrderItemVO> getOrderItemPage(OrderItemQuery queryParams);
 
     /**
      * 获取订单明细表单数据
@@ -26,22 +28,31 @@ public interface OrderItemService extends IService<OrderItem> {
      * @param id 订单明细ID
      * @return 订单明细表单数据
      */
-    OrderItemForm getOrderItemForm(Long id);
+     OrderItemForm getOrderItemFormData(Long id);
 
     /**
-     * 更新订单明细
+     * 新增订单明细
      *
-     * @param id 订单明细ID
-     * @param orderItemForm 订单明细表单数据
-     * @return 是否更新成功
+     * @param formData 订单明细表单对象
+     * @return 是否新增成功
      */
-    boolean updateOrderItem(Long id, OrderItemForm orderItemForm);
+    boolean saveOrderItem(OrderItemForm formData);
+
+    /**
+     * 修改订单明细
+     *
+     * @param id   订单明细ID
+     * @param formData 订单明细表单对象
+     * @return 是否修改成功
+     */
+    boolean updateOrderItem(Long id, OrderItemForm formData);
 
     /**
      * 删除订单明细
      *
-     * @param ids 订单明细ID数组
+     * @param ids 订单明细ID，多个以英文逗号(,)分割
      * @return 是否删除成功
      */
-    boolean deleteOrderItems(Long[] ids);
+    boolean deleteOrderItems(String ids);
+
 }

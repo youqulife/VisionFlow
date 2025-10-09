@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqusoft.vision.flow.modules.order.mapper.OrdersMapper">
+
+    <!-- 获取订单分页列表 -->
+    <select id="getOrdersPage" resultType="com.youqusoft.vision.flow.modules.order.model.vo.OrdersVO">
+        SELECT
+            t1.id,
+            t1.tenant_id,
+            t1.customer_id,
+            c.name as customer_name,
+            c.phone as customer_phone,
+            t1.eye_exam_id,
+            t1.order_number,
+            t1.order_type,
+            t1.sub_total,
+            t1.discount_amount,
+            t1.total_amount,
+            t1.actual_amount,
+            t1.status,
+            t1.payment_method,
+            t1.prescription_data,
+            t1.notes,
+            t1.is_deleted,
+            t1.create_time,
+            t1.update_time
+        FROM
+            orders t1
+        left join customer c on c.id = t1.customer_id
+        <where>
+            t1.is_deleted = 0
+        </where>
+    </select>
+
+</mapper>

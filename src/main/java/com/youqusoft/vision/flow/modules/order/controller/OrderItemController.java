@@ -1,62 +1,79 @@
 package com.youqusoft.vision.flow.modules.order.controller;
 
-import com.youqusoft.vision.flow.common.result.Result;
-import com.youqusoft.vision.flow.modules.order.model.form.OrderItemForm;
 import com.youqusoft.vision.flow.modules.order.service.OrderItemService;
-import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.youqusoft.vision.flow.modules.order.model.form.OrderItemForm;
+import com.youqusoft.vision.flow.modules.order.model.query.OrderItemQuery;
+import com.youqusoft.vision.flow.modules.order.model.vo.OrderItemVO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.youqusoft.vision.flow.common.result.PageResult;
+import com.youqusoft.vision.flow.common.result.Result;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
 
 /**
- * 订单明细控制层
+ * 订单明细前端控制层
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-10-06 21:14
  */
-@Tag(name = "订单明细管理")
+@Tag(name = "订单明细接口")
 @RestController
-@RequestMapping("/api/v1/order-items")
+@RequestMapping("/api/v1/order-item")
 @RequiredArgsConstructor
-public class OrderItemController {
+public class OrderItemController  {
 
     private final OrderItemService orderItemService;
 
-    @Operation(summary = "保存订单明细")
+    @Operation(summary = "订单明细分页列表")
+    @GetMapping("/page")
+    @PreAuthorize("@ss.hasPerm('order:order-item:query')")
+    public PageResult<OrderItemVO> getOrderItemPage(OrderItemQuery queryParams ) {
+        IPage<OrderItemVO> result = orderItemService.getOrderItemPage(queryParams);
+        return PageResult.success(result);
+    }
+
+    @Operation(summary = "新增订单明细")
     @PostMapping
-    public Result<Boolean> saveOrderItem(
-            @RequestBody @Valid OrderItemForm orderItemForm
-    ) {
-        boolean result = orderItemService.saveOrderItem(orderItemForm);
+    @PreAuthorize("@ss.hasPerm('order:order-item:add')")
+    public Result<Void> saveOrderItem(@RequestBody @Valid OrderItemForm formData ) {
+        boolean result = orderItemService.saveOrderItem(formData);
         return Result.judge(result);
     }
 
     @Operation(summary = "获取订单明细表单数据")
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/form")
+    @PreAuthorize("@ss.hasPerm('order:order-item:edit')")
     public Result<OrderItemForm> getOrderItemForm(
-            @Parameter(description = "订单明细ID") @PathVariable Long id
+        @Parameter(description = "订单明细ID") @PathVariable Long id
     ) {
-        OrderItemForm orderItemForm = orderItemService.getOrderItemForm(id);
-        return Result.success(orderItemForm);
+        OrderItemForm formData = orderItemService.getOrderItemFormData(id);
+        return Result.success(formData);
     }
 
-    @Operation(summary = "更新订单明细")
-    @PutMapping("/{id}")
-    public Result<Boolean> updateOrderItem(
+    @Operation(summary = "修改订单明细")
+    @PutMapping(value = "/{id}")
+    @PreAuthorize("@ss.hasPerm('order:order-item:edit')")
+    public Result<Void> updateOrderItem(
             @Parameter(description = "订单明细ID") @PathVariable Long id,
-            @RequestBody @Valid OrderItemForm orderItemForm
+            @RequestBody @Validated OrderItemForm formData
     ) {
-        boolean result = orderItemService.updateOrderItem(id, orderItemForm);
+        boolean result = orderItemService.updateOrderItem(id, formData);
         return Result.judge(result);
     }
 
     @Operation(summary = "删除订单明细")
     @DeleteMapping("/{ids}")
-    public Result<Boolean> deleteOrderItems(
-            @Parameter(description = "订单明细ID数组") @PathVariable Long[] ids
+    @PreAuthorize("@ss.hasPerm('order:order-item:delete')")
+    public Result<Void> deleteOrderItems(
+        @Parameter(description = "订单明细ID，多个以英文逗号(,)分割") @PathVariable String ids
     ) {
         boolean result = orderItemService.deleteOrderItems(ids);
         return Result.judge(result);

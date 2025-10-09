@@ -103,6 +103,7 @@ CREATE TABLE product_sku
     product_id      BIGINT         NOT NULL COMMENT '商品ID',
 
     -- SKU唯一标识
+    name            varchar(128)   NOT NULL COMMENT 'SKU名称',
     sku_code        VARCHAR(50)    NOT NULL COMMENT 'SKU编码',
 
     -- SKU具体属性

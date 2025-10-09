@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youqusoft.vision.flow.modules.dashboard.mapper.DashboardMapper">
+
+    <!-- 统计指定日期新增客户数 -->
+    <select id="getNewCustomerCount" resultType="int">
+        SELECT COUNT(*) 
+        FROM customer 
+        WHERE DATE(create_time) = #{date} AND is_deleted = 0
+    </select>
+
+    <!-- 统计指定日期验光次数 -->
+    <select id="getEyeExamCount" resultType="int">
+        SELECT COUNT(*) 
+        FROM eye_exam 
+        WHERE DATE(exam_date) = #{date} AND is_deleted = 0
+    </select>
+
+    <!-- 统计指定日期订单数量及金额 -->
+    <select id="getOrderStats" resultType="map">
+        SELECT 
+            COUNT(*) as orderCount,
+            COALESCE(SUM(total_amount), 0) as orderAmount
+        FROM orders 
+        WHERE DATE(create_time) = #{date} AND is_deleted = 0
+    </select>
+
+</mapper>

@@ -16,5 +16,10 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class ProductQuery extends BasePageQuery {
-
+    @Schema(description = "商品名称")
+    private String keywords;
+    @Schema(description = "商品分类ID")
+    private Long categoryId;
+    @Schema(description = "商品品牌ID")
+    private Long brandId;
 }

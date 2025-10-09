@@ -1,70 +1,96 @@
 package com.youqusoft.vision.flow.modules.order.model.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.youqusoft.vision.flow.common.base.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 /**
- * 订单明细实体类
+ * 订单明细实体对象
  *
- * @author Jack.Zhang
- * @since 2025-09-26
+ * @author youqusoft
+ * @since 2025-10-06 21:14
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@TableName("order_items")
+@Getter
+@Setter
+@TableName("order_item")
 public class OrderItem extends BaseEntity {
 
-    /**
-     * 主键ID
-     */
-    @TableId(type = IdType.AUTO)
-    private Long id;
+    private static final long serialVersionUID = 1L;
 
     /**
-     * 关联的订单ID
+     * 租户ID
+     */
+    private Long tenantId;
+    /**
+     * 订单ID
      */
     private Long orderId;
-
     /**
-     * 关联的商品ID
+     * 商品SKU ID
+     */
+    private Long productSkuId;
+    /**
+     * 商品ID
      */
     private Long productId;
-
-    /**
-     * 商品分类ID快照
-     */
-    private Long categoryId;
-
-    /**
-     * 商品类型：frame-镜架, lens-镜片, other-其他
-     */
-    private String productType;
-
     /**
      * 商品名称快照
      */
     private String productName;
-
     /**
-     * 商品单价快照
+     * 品牌名称快照
      */
-    private Double unitPrice;
-
+    private String brandName;
+    /**
+     * 分类名称快照
+     */
+    private String categoryName;
+    /**
+     * SKU编码快照
+     */
+    private String skuCode;
+    /**
+     * SKU属性快照
+     */
+    private String skuAttributes;
+    /**
+     * 销售单价快照
+     */
+    private BigDecimal unitPrice;
+    /**
+     * 成本单价快照
+     */
+    private BigDecimal costPrice;
     /**
      * 购买数量
      */
     private Integer quantity;
-
+    /**
+     * 商品小计
+     */
+    private BigDecimal subTotal;
+    /**
+     * 折扣率
+     */
+    private BigDecimal discountRate;
+    /**
+     * 优惠金额
+     */
+    private BigDecimal discountAmount;
     /**
      * 商品总价
      */
-    private Double itemTotal;
-
+    private BigDecimal itemTotal;
     /**
-     * 软删除标记：0-未删除, 1-已删除
+     * 适用眼睛
      */
-    @TableLogic
+    private String eyeSide;
+    /**
+     * 镜片处方数据
+     */
+    private String lensPrescription;
     private Integer isDeleted;
 }
